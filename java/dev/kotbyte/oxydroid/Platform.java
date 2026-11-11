@@ -57,7 +57,14 @@ public final class Platform {
                 sBackCallback = null;      // belonged to the old activity
                 sColorsSaved = false;
                 sInput = new InputView(activity);
-                activity.addContentView(sInput, new ViewGroup.LayoutParams(1, 1));
+                // Covers the WHOLE window (on the decor view, not the content area, which starts
+                // below the status/title bars) so its coordinates match the native surface: the
+                // floating toolbar only shows over a rect inside its originating view. It can't
+                // steal touches (NativeActivity takes the input queue) and draws nothing (native
+                // code owns the surface).
+                ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
+                decor.addView(sInput, new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                 installInsets(activity);
                 if (!sConfigRegistered) {
                     sConfigRegistered = true;

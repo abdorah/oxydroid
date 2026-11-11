@@ -1,7 +1,7 @@
 // oxydroid: keyboard (IME) support for Rust apps on NativeActivity.
 // Licensed under MIT OR Apache-2.0.
 //
-// An invisible 1x1 View that owns the keyboard session. It keeps a mirror of the text
+// An invisible full-window View that owns the keyboard session. It keeps a mirror of the text
 // (so the keyboard's synchronous questions are answered instantly on the UI thread) and
 // sends one snapshot to Rust after every edit. All decisions live in Rust.
 // Only touched on the main thread (via Platform).
@@ -121,12 +121,14 @@ final class InputView extends View {
             @Override public void onDestroyActionMode(ActionMode m) { mToolbar = null; }
             @Override public void onGetContentRect(ActionMode m, View v, Rect out) {
                 // The app gives window coordinates; ActionMode wants this view's coordinates.
+                // (They match: this view covers the whole window, see Platform.install.)
                 int[] loc = new int[2];
                 getLocationInWindow(loc);
                 out.set(mToolbarRect);
                 out.offset(-loc[0], -loc[1]);
             }
         }, ActionMode.TYPE_FLOATING);
+        if (mToolbar == null) android.util.Log.w("oxydroid", "floating toolbar refused by the window");
     }
 
     void hideToolbar() {
@@ -194,7 +196,7 @@ final class InputView extends View {
     }
 
     /** Simulate one keyboard call on the InputConnection, exactly as a keyboard app makes it.
-     *  op: commit(text) | compose(text) | finish | delete(a = code points before) |
+     *  op: commit(text) | compose(text) | finish | region(a, b) | delete(a = code points before) |
      *      select(a, b) | menu(a = android.R.id.*) | key(a = keycode). */
     void debugKeyboard(String op, String text, int a, int b) {
         if (mConn == null) mConn = new Connection();
@@ -202,6 +204,7 @@ final class InputView extends View {
             case "commit": mConn.commitText(text, 1); break;
             case "compose": mConn.setComposingText(text, 1); break;
             case "finish": mConn.finishComposingText(); break;
+            case "region": mConn.setComposingRegion(a, b); break;
             case "delete": mConn.deleteSurroundingTextInCodePoints(a, 0); break;
             case "select": mConn.setSelection(a, b); break;
             case "menu": mConn.performContextMenuAction(a); break;

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Fixed (found by the on-device test, docs/test-reports/2026-11-11-a20):
+- egui adapter: apply only the last keyboard snapshot per frame (two snapshots in one frame
+  corrupted edits).
+- The input view covers the whole window: the floating toolbar was never visible.
+- egui adapter: use widget focus; `Response::has_focus` needs window focus, which egui-winit can
+  miss at startup on Android.
+
 - Keyboard input through a real `InputConnection` with a Java-side text mirror and whole-state
   snapshots (`Event::Text`). App writes win, via sequence numbers.
 - Selection keeps its direction (`anchor` / `head`).

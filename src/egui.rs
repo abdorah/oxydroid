@@ -56,6 +56,7 @@ pub struct Ime {
     /// Snapshot caret to apply after egui processed our injected edit: (field, anchor, head).
     pending_cursor: Option<(Id, usize, usize)>,
     toolbar_shown: bool,
+    window_focused: bool,
     /// The text Java's mirror holds, as far as we know: focusing a field with the same text
     /// then needs no keyboard restart.
     mirror: Option<String>,
@@ -80,9 +81,23 @@ impl Ime {
 
     /// Feed keyboard events into egui's input. Call from `eframe::App::raw_input_hook`.
     pub fn begin_frame(&mut self, ctx: &Context, raw: &mut RawInput) {
-        for ev in crate::poll() {
+        if raw.focused != self.window_focused {
+            log::debug!(
+                "oxydroid-egui: window focused {} -> {}",
+                self.window_focused,
+                raw.focused
+            );
+            self.window_focused = raw.focused;
+        }
+        let events = crate::poll();
+        // Snapshots are whole states, so only the last one of the frame matters. Applying each
+        // in turn is wrong: a second snapshot (e.g. the real keyboard reacting to the first)
+        // would overwrite the replace-range before egui handles the first edit.
+        let last_text = events.iter().rposition(|e| matches!(e, Event::Text(_)));
+        for (i, ev) in events.into_iter().enumerate() {
             match &ev {
-                Event::Text(s) => self.apply_snapshot(ctx, raw, s),
+                Event::Text(s) if Some(i) == last_text => self.apply_snapshot(ctx, raw, s),
+                Event::Text(_) => {}
                 Event::Action(_) => press(raw, Key::Enter, Modifiers::NONE),
                 Event::Key { code, shift } => {
                     let m = if *shift {
@@ -123,8 +138,12 @@ impl Ime {
         let mut out = build(text).show(ui);
         let id = out.response.id;
         let ctx = ui.ctx().clone();
+        // Widget focus, not `Response::has_focus`: that also requires *window* focus, and on
+        // Android egui-winit can miss the window-focus event at startup (then it would never open
+        // the keyboard). TextEdit itself handles keys based on widget focus too.
+        let focused = ctx.memory(|m| m.has_focus(id));
 
-        if !out.response.has_focus() {
+        if !focused {
             if self.focused.as_ref().is_some_and(|f| f.id == id) {
                 self.unfocus();
             }
@@ -155,10 +174,19 @@ impl Ime {
                 }
                 if *text != f.text {
                     // Changed by the app or by egui (not by the keyboard): the keyboard must resync.
+                    log::debug!(
+                        "oxydroid-egui: resync text {:?} -> {text:?} ({anchor},{head})",
+                        f.text
+                    );
                     crate::set_text(text, anchor, head);
                     self.mirror = Some(text.clone());
                     f.composing = None;
                 } else if (anchor, head) != (f.anchor, f.head) {
+                    log::debug!(
+                        "oxydroid-egui: resync caret ({},{}) -> ({anchor},{head}) in {text:?}",
+                        f.anchor,
+                        f.head
+                    );
                     crate::set_selection(text, anchor, head);
                 }
                 f.text = text.clone();
@@ -226,6 +254,14 @@ impl Ime {
         if s.text != f.text {
             let (start, old_end, new_end) = text::diff(&f.text, &s.text);
             let inserted = &s.text[start..new_end];
+            log::debug!(
+                "oxydroid-egui: snapshot {:?} -> {:?}: replace {start}..{old_end} with {inserted:?}, caret ({},{}), comp {:?}",
+                f.text,
+                s.text,
+                s.anchor,
+                s.head,
+                s.composing
+            );
             // Select the replaced range, then type over it, as a physical keyboard would.
             let mut st = TextEditState::load(ctx, f.id).unwrap_or_default();
             st.cursor.set_char_range(Some(CCursorRange::two(
@@ -314,6 +350,7 @@ impl Ime {
             };
             let r = p(a).union(p(b));
             let ppp = ui.ctx().pixels_per_point();
+            log::debug!("oxydroid-egui: show_toolbar over {r:?} (points) x{ppp}");
             crate::show_toolbar(
                 (r.left() * ppp) as i32,
                 (r.top() * ppp) as i32,

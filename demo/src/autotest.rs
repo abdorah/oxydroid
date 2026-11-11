@@ -1,9 +1,9 @@
 //! Scripted on-device test, started with:
 //!   adb shell am start -S -n dev.kotbyte.oxydroid.demo/android.app.NativeActivity --es oxytest 1
 //! Every step drives the REAL InputConnection exactly as a keyboard app calls it
-//! (`oxydroid::debug_keyboard`), then checks the egui field one step later.
-//! Log lines (tag oxydemo): `oxytest: PASS|FAIL …`, `oxytest: shot NAME` (screenshot cue),
-//! `oxytest: DONE passed=N failed=M`.
+//! (`oxydroid::debug_keyboard`), then checks the egui field on the next step.
+//! Log lines (tag oxydemo): `oxytest: PASS|FAIL …`, `oxytest: shot NAME` (screenshot cue; the
+//! test then pauses so the capture shows that state), `oxytest: DONE passed=N failed=M`.
 
 use super::Demo;
 use egui::text_edit::TextEditState;
@@ -13,7 +13,9 @@ const SELECT_ALL: i32 = 0x0102_001f;
 const CUT: i32 = 0x0102_0020;
 const PASTE: i32 = 0x0102_0022;
 const KEYCODE_DEL: i32 = 67;
-const STEP_SECONDS: f64 = 1.2;
+const STEP_SECONDS: f64 = 1.0;
+/// screencap over Wi-Fi takes ~1 s: hold the state that long after a shot cue.
+const SHOT_HOLD_SECONDS: f64 = 2.5;
 
 pub(crate) struct AutoTest {
     step: usize,
@@ -35,8 +37,10 @@ impl AutoTest {
     }
 }
 
-fn shot(name: &str) {
-    log::info!("oxytest: shot {name}");
+/// What a step does after checking: an action (keyboard call) or a screenshot pause.
+enum Then {
+    Act,
+    Shot(&'static str),
 }
 
 impl Demo {
@@ -70,14 +74,13 @@ impl Demo {
         if now < t.next_at {
             return;
         }
-        let step = t.step;
         let kb = oxydroid::debug_keyboard;
-        match step {
+        let then = match t.step {
             0 => {
-                shot("00-start");
                 if let Some(id) = self.user_id {
                     ctx.memory_mut(|m| m.request_focus(id)); // like a tap on the field
                 }
+                Then::Act
             }
             1 => {
                 let focused = self
@@ -89,29 +92,42 @@ impl Demo {
                     format!("focused={focused}"),
                 );
                 kb("compose", "hé", 0, 0); // keyboard shows "hé" underlined
+                Then::Act
             }
             2 => {
                 self.expect_user("compose (é)", "hé");
-                shot("02-composing");
-                kb("commit", "héllo", 0, 0); // user picks the suggestion
+                Then::Shot("02-composing-underlined")
             }
             3 => {
-                self.expect_user("commit replaces the composing word", "héllo");
-                kb("commit", " عربي 😀", 0, 0);
+                // The user picks the suggestion: the keyboard re-marks its word and commits over
+                // it, back to back (the live Samsung keyboard may have finished our fake
+                // composition in the meantime, as it doesn't know about it).
+                kb("region", "", 0, 2);
+                kb("commit", "héllo", 0, 0);
+                Then::Act
             }
             4 => {
-                self.expect_user("Arabic + emoji", "héllo عربي 😀");
-                shot("04-arabic-emoji");
-                kb("delete", "", 1, 0); // backspace: one code point (the emoji)
+                self.expect_user("commit replaces the composing word", "héllo");
+                kb("commit", " عربي 😀", 0, 0);
+                Then::Act
             }
             5 => {
+                self.expect_user("Arabic + emoji", "héllo عربي 😀");
+                Then::Shot("05-arabic-emoji")
+            }
+            6 => {
+                kb("delete", "", 1, 0); // backspace: one code point (the emoji)
+                Then::Act
+            }
+            7 => {
                 self.expect_user(
                     "delete one code point (emoji = 2 UTF-16 units)",
                     "héllo عربي ",
                 );
                 kb("select", "", 0, 5); // keyboard selects "héllo" (UTF-16 offsets)
+                Then::Act
             }
-            6 => {
+            8 => {
                 let range = self
                     .user_id
                     .and_then(|id| TextEditState::load(ctx, id))
@@ -122,52 +138,65 @@ impl Demo {
                     got == Some((0, 5)),
                     format!("{got:?}"),
                 );
-                shot("06-selection-handles-toolbar");
-                kb("commit", "HELLO", 0, 0); // typing replaces the selection
+                Then::Shot("08-selection-handles-toolbar")
             }
-            7 => {
+            9 => {
+                kb("commit", "HELLO", 0, 0); // typing replaces the selection
+                Then::Act
+            }
+            10 => {
                 self.expect_user("typing replaces the selection", "HELLO عربي ");
                 kb("menu", "", SELECT_ALL, 0);
                 kb("menu", "", CUT, 0);
-            }
-            8 => {
-                self.expect_user("select all + cut", "");
-                kb("menu", "", PASTE, 0);
-            }
-            9 => {
-                self.expect_user("paste (system clipboard)", "HELLO عربي ");
-                self.user = "app wrote".into(); // app write: the adapter must resync the keyboard
-            }
-            10 => {
-                kb("commit", "!", 0, 0); // lands after "app wrote" only if Java got the app write
+                Then::Act
             }
             11 => {
-                self.expect_user("app write reached the keyboard's mirror", "app wrote!");
-                kb("key", "", KEYCODE_DEL, 0);
+                self.expect_user("select all + cut", "");
+                kb("menu", "", PASTE, 0);
+                Then::Act
             }
             12 => {
-                self.expect_user("DEL key event", "app wrote");
-                self.focus_pass = true; // move to the password field
+                self.expect_user("paste (system clipboard)", "HELLO عربي ");
+                self.user = "app wrote".into(); // app write: the adapter must resync the keyboard
+                Then::Act
             }
             13 => {
-                kb("commit", "s3cret", 0, 0);
+                kb("commit", "!", 0, 0); // lands after "app wrote" only if Java got the app write
+                Then::Act
             }
             14 => {
+                self.expect_user("app write reached the keyboard's mirror", "app wrote!");
+                kb("key", "", KEYCODE_DEL, 0);
+                Then::Act
+            }
+            15 => {
+                self.expect_user("DEL key event", "app wrote");
+                self.focus_pass = true; // move to the password field
+                Then::Act
+            }
+            16 => {
+                kb("commit", "s3cret", 0, 0);
+                Then::Act
+            }
+            17 => {
                 let ok = self.pass == "s3cret";
                 self.check(
                     "password field gets text",
                     ok,
                     format!("{} chars", self.pass.chars().count()),
                 );
-                shot("14-password");
-                self.start_race_test();
+                Then::Shot("17-password")
             }
-            15 => {
-                // The race test reports itself (PASS/FAIL line) within a few frames.
+            18 => {
+                self.start_race_test();
+                Then::Act
+            }
+            19 => {
                 for n in [1_000, 10_000, 100_000] {
                     oxydroid::debug_time_report(n);
                 }
                 oxydroid::set_state(&self.pass.clone(), 0..0); // drop the measurement snapshots
+                Then::Act
             }
             _ => {
                 let race_pass = self
@@ -175,16 +204,23 @@ impl Demo {
                     .iter()
                     .any(|r| r.starts_with("race test: PASS"));
                 self.check("race test (Q1)", race_pass, "see race line".into());
-                shot("16-results");
                 let t = self.autotest.as_mut().unwrap();
                 t.done = true;
                 let (p, f) = (t.passed, t.failed);
                 self.result(format!("oxytest: DONE passed={p} failed={f}"));
+                log::info!("oxytest: shot 99-results");
                 return;
             }
-        }
+        };
         let t = self.autotest.as_mut().unwrap();
         t.step += 1;
-        t.next_at = now + STEP_SECONDS;
+        t.next_at = now
+            + match then {
+                Then::Act => STEP_SECONDS,
+                Then::Shot(name) => {
+                    log::info!("oxytest: shot {name}");
+                    SHOT_HOLD_SECONDS
+                }
+            };
     }
 }

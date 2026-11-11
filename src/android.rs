@@ -501,7 +501,7 @@ pub fn intent_extra(activity: *mut c_void, key: &str) -> Option<String> {
 }
 
 /// Simulate one keyboard call on the InputConnection, as a keyboard app makes it:
-/// `op` = `commit`/`compose` (text), `finish`, `delete` (a = code points before),
+/// `op` = `commit`/`compose` (text), `finish`, `region` (a, b), `delete` (a = code points before),
 /// `select` (a, b in UTF-16 units), `menu` (a = `android.R.id.*`), `key` (a = keycode).
 #[doc(hidden)]
 pub fn debug_keyboard(op: &str, text: &str, a: i32, b: i32) {

@@ -1,0 +1,18 @@
+oxytest: PASS focus opens a keyboard session: focused=true
+oxytest: PASS compose (é): "hé" (expected "hé")
+oxytest: PASS commit replaces the composing word: "héllo" (expected "héllo")
+oxytest: PASS Arabic + emoji: "héllo عربي 😀" (expected "héllo عربي 😀")
+oxytest: PASS delete one code point (emoji = 2 UTF-16 units): "héllo عربي " (expected "héllo عربي ")
+oxytest: PASS keyboard selection reaches egui: Some((0, 5))
+oxytest: PASS typing replaces the selection: "HELLO عربي " (expected "HELLO عربي ")
+oxytest: PASS select all + cut: "" (expected "")
+oxytest: PASS paste (system clipboard): "HELLO عربي " (expected "HELLO عربي ")
+oxytest: PASS app write reached the keyboard's mirror: "app wrote!" (expected "app wrote!")
+oxytest: PASS DEL key event: "app wrote" (expected "app wrote")
+oxytest: PASS password field gets text: 6 chars
+race test: PASS (stale dropped: 2, RACE leaked: false, echo received: true)
+latency: 1000 chars: 514 us per snapshot
+latency: 10000 chars: 1038 us per snapshot
+latency: 100000 chars: 4866 us per snapshot
+oxytest: PASS race test (Q1): see race line
+oxytest: DONE passed=13 failed=0

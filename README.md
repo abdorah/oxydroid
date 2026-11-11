@@ -4,6 +4,7 @@
 clipboard, insets, back and dark mode. No JDK, no Gradle.**
 
 > Status: **experimental** (0.0.x). Tested on one device: Galaxy A20, Android 11, Samsung Keyboard.
+> Latest automated on-device run: [13/13 checks pass](docs/test-reports/2026-11-11-a20/REPORT.md).
 
 ## Why
 
@@ -26,7 +27,7 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Caret/selection from the app (tap, drag, long-press) and from the keyboard (cursor keys, Select mode) | ✅ |
 | Keyboard Select all / Cut / Copy / Paste, cross-app clipboard | ✅ |
 | Field kinds (password, number, email, multiline) + Enter action (Done/Send/Go/…) | ✅ |
-| Floating Cut/Copy/Paste toolbar | ✅ |
+| Floating Cut/Copy/Paste toolbar | ✅ (fixed: was invisible before 2026-11-11; screenshot in the test report) |
 | Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ (status 53 px, nav 84 px, keyboard 608–678 px) |
 | Dark mode / font scale / density changes | ✅ |
 | Back via `OnBackInvokedCallback` (Android 13+) | ⚠️ implemented, **untested** (needs Android 13+) |
