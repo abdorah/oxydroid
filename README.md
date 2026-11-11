@@ -22,16 +22,16 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Feature | Status on the A20 (Android 11) |
 |---|---|
 | Typing: accents, Arabic, emoji, suggestions/autocorrect (composing text) | ✅ |
-| App-side edits ("clear on send") win over in-flight keyboard edits | ✅ by design; on-device self-test in the demo |
+| App-side edits ("clear on send") win over in-flight keyboard edits | ✅ on-device race self-test passes |
 | Caret/selection from the app (tap, drag, long-press) and from the keyboard (cursor keys, Select mode) | ✅ |
 | Keyboard Select all / Cut / Copy / Paste, cross-app clipboard | ✅ |
-| Field kinds (password, number, email, multiline) + Enter action (Done/Send/Go/…) | 🧪 new |
-| Floating Cut/Copy/Paste toolbar | 🧪 new |
-| Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | 🧪 new |
-| Dark mode / font scale / density changes | 🧪 new |
+| Field kinds (password, number, email, multiline) + Enter action (Done/Send/Go/…) | ✅ |
+| Floating Cut/Copy/Paste toolbar | ✅ |
+| Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ (status 53 px, nav 84 px, keyboard 608–678 px) |
+| Dark mode / font scale / density changes | ✅ |
 | Back via `OnBackInvokedCallback` (Android 13+) | ⚠️ implemented, **untested** (needs Android 13+) |
-| **egui adapter** (feature `egui`): plain `egui::TextEdit` with real keyboard input | 🧪 new |
-| Draggable selection handles (drawn by the toolkit adapter) | 🧪 new, egui adapter |
+| **egui adapter** (feature `egui`): plain `egui::TextEdit` with real keyboard input | ✅ sign-in form + chat demo |
+| Draggable selection handles (drawn by the toolkit adapter) | ✅ egui adapter |
 
 ## egui
 
@@ -59,6 +59,9 @@ egui's own undo, filters and layout apply). It resyncs the keyboard when the app
 the text or caret, draws touch selection handles, shows the floating toolbar over a selection, and
 suppresses egui-winit's own IME requests (on Android those hide/show the keyboard). Composing text
 isn't underlined yet. See [`demo/`](demo) for a sign-in form and a chat box.
+
+**Cost per keystroke** (snapshot: Java → JNI → Rust, A20): ~0.1 ms at 1k chars, ~0.5 ms at 10k,
+~3.5 ms at 100k. Mirroring the whole text is fine for normal fields and documents.
 
 ## How it works
 
