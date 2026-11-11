@@ -40,6 +40,7 @@ public final class Platform {
     static native void nativeOnInsets(int left, int top, int right, int bottom, int imeBottom);
     static native void nativeOnBack();
     static native void nativeOnConfig(boolean night, float fontScale, int densityDpi);
+    static native void nativeOnDebug(String message);
 
     private Platform() {}
 
@@ -203,6 +204,20 @@ public final class Platform {
         static void unregister(Activity a, Object cb) {
             a.getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback((OnBackInvokedCallback) cb);
         }
+    }
+
+    // ---- Test hooks (demo self-tests; not public API) ----
+
+    public static void debugKeyboardCommit(final String text) {
+        post(new Runnable() {
+            @Override public void run() { if (sInput != null) sInput.debugKeyboardCommit(text); }
+        });
+    }
+
+    public static void debugTimeReport(final int chars) {
+        post(new Runnable() {
+            @Override public void run() { if (sInput != null) nativeOnDebug(sInput.debugTimeReport(chars)); }
+        });
     }
 
     // ---- Configuration (dark mode, font scale, density) ----

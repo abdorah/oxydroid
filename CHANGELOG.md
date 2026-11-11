@@ -11,4 +11,8 @@
 - Insets with keyboard height, opt-in edge-to-edge.
 - Back via `OnBackInvokedCallback` on Android 13+ (`set_back_handled`).
 - Configuration events: dark mode, font scale, density.
+- egui adapter (feature `egui`): `oxydroid::egui::Ime` wires plain `TextEdit`s to the keyboard,
+  with touch selection handles and the floating toolbar. Demo app in `demo/`.
+- `text::diff` and char/byte helpers for toolkit adapters.
+- On-device self-test hooks (hidden): simulated keyboard commit, snapshot timing.
 - Re-`init` after activity recreation re-attaches. Callbacks never unwind into Java.

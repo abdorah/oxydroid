@@ -6,9 +6,13 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 keywords = ["android", "ime", "keyboard", "nativeactivity", "jni"]
 categories = ["gui", "os::android-apis"]
-exclude = [".github"]
+exclude = [".github", "demo"]
 description = "Android platform services for Rust UI apps on NativeActivity: keyboard (IME), clipboard, insets, back, dark mode. No JDK needed."
 publish = false
+
+[features]
+# Adapter for egui's TextEdit (oxydroid::egui).
+egui = ["dep:egui"]
 
 [dependencies]
 log = "0.4"
@@ -17,3 +21,4 @@ log = "0.4"
 # internally, and the two coexist. Revisit when moving to a real release.
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.21"
+egui = { version = "0.37", optional = true, default-features = false }

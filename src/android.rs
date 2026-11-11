@@ -42,6 +42,9 @@ static INSETS: Mutex<Insets> = Mutex::new(Insets {
 static CONFIG: Mutex<Option<Config>> = Mutex::new(None);
 /// Sequence number of the latest app write (Q1).
 static APP_SEQ: AtomicU64 = AtomicU64::new(0);
+/// Stale snapshots dropped by `poll` so far (for the race self-test).
+static DROPPED: AtomicU64 = AtomicU64::new(0);
+static DEBUG: Mutex<Vec<String>> = Mutex::new(Vec::new());
 
 impl From<jni::errors::Error> for Error {
     fn from(e: jni::errors::Error) -> Self {
@@ -102,6 +105,11 @@ pub fn init(vm: *mut c_void, activity: *mut c_void) -> Result<(), Error> {
             ("nativeOnInsets", "(IIIII)V", on_insets as *mut c_void),
             ("nativeOnBack", "()V", on_back as *mut c_void),
             ("nativeOnConfig", "(ZFI)V", on_config as *mut c_void),
+            (
+                "nativeOnDebug",
+                "(Ljava/lang/String;)V",
+                on_debug as *mut c_void,
+            ),
         ];
         let natives: Vec<NativeMethod> = natives
             .into_iter()
@@ -141,6 +149,7 @@ pub fn poll() -> Vec<Event> {
         .drain(..)
         .filter(|ev| match ev {
             Event::Text(s) if s.last_app_seq < latest => {
+                DROPPED.fetch_add(1, Ordering::Relaxed);
                 log::debug!(
                     "oxydroid: dropped stale snapshot (seq {} < {latest})",
                     s.last_app_seq
@@ -413,4 +422,47 @@ extern "system" fn on_config(
         *CONFIG.lock().unwrap() = Some(c);
         push(Event::Config(c));
     });
+}
+
+extern "system" fn on_debug(mut env: JNIEnv, _class: JClass, message: JString) {
+    guard("debug", || {
+        if let Ok(s) = env.get_string(&message) {
+            DEBUG.lock().unwrap().push(s.into());
+        }
+    });
+}
+
+// ---- Self-test hooks (used by the demo; not part of the stable API) ----
+
+/// Simulate the keyboard committing `text`, through the real InputConnection path.
+#[doc(hidden)]
+pub fn debug_keyboard_commit(text: &str) {
+    with_env(|env| {
+        let t = env.new_string(text)?;
+        env.call_static_method(
+            class(),
+            "debugKeyboardCommit",
+            "(Ljava/lang/String;)V",
+            &[(&t).into()],
+        )
+        .map(|_| ())
+    });
+}
+
+/// Measure the per-keystroke snapshot cost for a text of `chars` characters. The result arrives
+/// in [`debug_take_messages`]. Follow with an app write (e.g. `set_state`) to drop the snapshots it makes.
+#[doc(hidden)]
+pub fn debug_time_report(chars: i32) {
+    call("debugTimeReport", "(I)V", &[JValue::Int(chars)]);
+}
+
+#[doc(hidden)]
+pub fn debug_take_messages() -> Vec<String> {
+    std::mem::take(&mut *DEBUG.lock().unwrap())
+}
+
+/// How many stale keyboard snapshots `poll` has dropped (Q1 filter).
+#[doc(hidden)]
+pub fn dropped_snapshots() -> u64 {
+    DROPPED.load(Ordering::Relaxed)
 }

@@ -22,7 +22,7 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Feature | Status on the A20 (Android 11) |
 |---|---|
 | Typing: accents, Arabic, emoji, suggestions/autocorrect (composing text) | ✅ |
-| App-side edits ("clear on send") win over in-flight keyboard edits | ✅ (by design; scripted race test pending) |
+| App-side edits ("clear on send") win over in-flight keyboard edits | ✅ by design; on-device self-test in the demo |
 | Caret/selection from the app (tap, drag, long-press) and from the keyboard (cursor keys, Select mode) | ✅ |
 | Keyboard Select all / Cut / Copy / Paste, cross-app clipboard | ✅ |
 | Field kinds (password, number, email, multiline) + Enter action (Done/Send/Go/…) | 🧪 new |
@@ -30,12 +30,40 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | 🧪 new |
 | Dark mode / font scale / density changes | 🧪 new |
 | Back via `OnBackInvokedCallback` (Android 13+) | ⚠️ implemented, **untested** (needs Android 13+) |
-| Draggable selection handles | ❌ not yet |
+| **egui adapter** (feature `egui`): plain `egui::TextEdit` with real keyboard input | 🧪 new |
+| Draggable selection handles (drawn by the toolkit adapter) | 🧪 new, egui adapter |
+
+## egui
+
+```toml
+oxydroid = { version = "0.0.1", features = ["egui"] }
+```
+
+```rust
+struct App { ime: oxydroid::egui::Ime, name: String }   // Ime::new(&cc.egui_ctx) in the app creator
+
+impl eframe::App for App {
+    fn raw_input_hook(&mut self, ctx: &egui::Context, raw: &mut egui::RawInput) {
+        self.ime.begin_frame(ctx, raw);                        // keyboard → egui input
+    }
+    fn ui(&mut self, ui: &mut egui::Ui, _: &mut eframe::Frame) {
+        self.ime.text_edit(ui, &mut self.name, FieldKind::Text, EnterAction::Done,
+            |t| egui::TextEdit::singleline(t).hint_text("Name"));
+        self.ime.end_frame(ui.ctx());                          // after all fields
+    }
+}
+```
+
+The adapter diffs each keyboard snapshot against the field and types the change into egui (so
+egui's own undo, filters and layout apply). It resyncs the keyboard when the app or egui changes
+the text or caret, draws touch selection handles, shows the floating toolbar over a selection, and
+suppresses egui-winit's own IME requests (on Android those hide/show the keyboard). Composing text
+isn't underlined yet. See [`demo/`](demo) for a sign-in form and a chat box.
 
 ## How it works
 
 - `java/` holds two small framework-only classes (no AndroidX). `build-dex.sh` compiles them **once,
-  by maintainers**. The resulting `classes.dex` (~18 KB) is committed and embedded with `include_bytes!`.
+  by maintainers**. The resulting `classes.dex` (~20 KB) is committed and embedded with `include_bytes!`.
 - At runtime the dex is loaded from memory (`InMemoryDexClassLoader`, API 26+), native callbacks are
   bound with `RegisterNatives`, and an invisible 1×1 view is attached to your activity.
 - That view keeps a **mirror** of the text, so the keyboard's synchronous questions ("text before
@@ -100,7 +128,8 @@ config_changes = "orientation|screenSize|screenLayout|smallestScreenSize|keyboar
 - One `NativeActivity` per process (normal for Rust apps). Re-calling `init` after the activity was
   recreated re-attaches to the new one.
 - Back: Android 13+ only. Earlier versions deliver back as a key event through the input queue.
-- Not yet integrated with any toolkit. The demo draws its own text field. An egui `TextEdit` adapter is next.
+- Toolkit adapters: egui only so far. Others can use the toolkit-neutral API (`poll` /
+  `set_state` / `set_selection`) and `oxydroid::text::diff`.
 
 ## Building the dex (maintainers only)
 

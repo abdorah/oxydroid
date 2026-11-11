@@ -180,7 +180,33 @@ final class InputView extends View {
         out.imeOptions = mImeOptions;
         out.initialSelStart = Selection.getSelectionStart(mEditable);
         out.initialSelEnd = Selection.getSelectionEnd(mEditable);
-        return new Connection();
+        mConn = new Connection();
+        return mConn;
+    }
+
+    // ---- Test hooks (used by the demo's self-tests; not part of the public API) ----
+
+    private Connection mConn;
+
+    /** Simulate the keyboard committing text, through the same path a real keyboard uses. */
+    void debugKeyboardCommit(String text) {
+        if (mConn == null) mConn = new Connection();
+        mConn.commitText(text, 1);
+    }
+
+    /** Average cost of one per-keystroke snapshot (toString + JNI + Rust) for a text of n chars.
+     *  The snapshots it produces carry the current app seq: follow with an app write to drop them. */
+    String debugTimeReport(int n) {
+        char[] filler = new char[n];
+        java.util.Arrays.fill(filler, 'a');
+        String saved = mEditable.toString();
+        mEditable.replace(0, mEditable.length(), new String(filler));
+        final int rounds = 20;
+        long t0 = System.nanoTime();
+        for (int i = 0; i < rounds; i++) report();
+        long avgUs = (System.nanoTime() - t0) / rounds / 1000;
+        mEditable.replace(0, mEditable.length(), saved);
+        return n + " chars: " + avgUs + " us per snapshot";
     }
 
     /** Send one snapshot to Rust, and keep the keyboard's model of the cursor in sync. */

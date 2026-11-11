@@ -1,0 +1,45 @@
+[package]
+name = "oxydroid-demo"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# Plain egui TextEdits (login form + chat) on Android through oxydroid's egui adapter,
+# plus on-device self-tests (Q1 race, snapshot latency).
+#   cargo apk build --lib     (from this directory)
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+log = "0.4"
+oxydroid = { path = "..", features = ["egui"] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.15"
+egui = "0.37.0"
+# The phone's emoji font is CBDT (bitmap): needs epaint's color glyph rasterizer.
+epaint = { version = "0.37.0", features = ["color_fonts"] }
+eframe = { version = "0.37.0", default-features = false, features = ["default_fonts", "glow", "android-native-activity"] }
+winit = "0.30.13"
+
+[package.metadata.android]
+package = "dev.kotbyte.oxydroid.demo"
+build_targets = ["aarch64-linux-android"]
+
+[package.metadata.android.sdk]
+min_sdk_version = 26
+target_sdk_version = 36
+
+[package.metadata.android.application]
+label = "oxydroid demo"
+
+[package.metadata.android.application.activity]
+config_changes = "orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard|uiMode|fontScale|density"
+
+[profile.dev]
+debug = "line-tables-only"
+strip = "debuginfo"
+
+[profile.dev.package."*"]
+opt-level = 2

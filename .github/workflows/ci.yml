@@ -25,7 +25,7 @@ jobs:
           targets: aarch64-linux-android
           components: clippy
       # Library crate, no linking: no NDK needed for check/clippy.
-      - run: cargo clippy --target aarch64-linux-android -- -D warnings
+      - run: cargo clippy --target aarch64-linux-android --all-features -- -D warnings
 
   dex:
     name: Committed classes.dex matches java/

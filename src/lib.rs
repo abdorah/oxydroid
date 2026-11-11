@@ -33,6 +33,11 @@
 //! mode or font changes don't recreate the activity.
 
 pub mod offsets;
+pub mod text;
+
+/// egui adapter: real keyboard input for a plain `egui::TextEdit`.
+#[cfg(all(target_os = "android", feature = "egui"))]
+pub mod egui;
 
 #[cfg(target_os = "android")]
 mod android;
