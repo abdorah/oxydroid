@@ -34,6 +34,7 @@
 
 pub mod offsets;
 pub mod text;
+pub mod winit_ime;
 
 /// egui adapter: real keyboard input for a plain `egui::TextEdit`.
 #[cfg(all(target_os = "android", feature = "egui"))]

@@ -58,7 +58,7 @@ The adapter diffs each keyboard snapshot against the field and types the change 
 egui's own undo, filters and layout apply). It resyncs the keyboard when the app or egui changes
 the text or caret, draws touch selection handles, shows the floating toolbar over a selection, and
 suppresses egui-winit's own IME requests (on Android those hide/show the keyboard). Composing text
-isn't underlined yet. See [`demo/`](demo) for a sign-in form and a chat box.
+is underlined. See [`demo/`](demo) for a sign-in form and a chat box.
 
 **Cost per keystroke** (snapshot: Java → JNI → Rust, A20): ~0.1 ms at 1k chars, ~0.5 ms at 10k,
 ~3.5 ms at 100k. Mirroring the whole text is fine for normal fields and documents.
@@ -131,8 +131,9 @@ config_changes = "orientation|screenSize|screenLayout|smallestScreenSize|keyboar
 - One `NativeActivity` per process (normal for Rust apps). Re-calling `init` after the activity was
   recreated re-attaches to the new one.
 - Back: Android 13+ only. Earlier versions deliver back as a key event through the input queue.
-- Toolkit adapters: egui only so far. Others can use the toolkit-neutral API (`poll` /
-  `set_state` / `set_selection`) and `oxydroid::text::diff`.
+- Toolkit adapters: egui (`oxydroid::egui`), and `oxydroid::winit_ime::Translator` for toolkits that
+  consume winit-style IME events (`Preedit` / `Commit` / `DeleteSurrounding`). Anything else can use
+  `poll` / `set_text` / `set_selection` directly.
 
 ## Building the dex (maintainers only)
 

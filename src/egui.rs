@@ -46,6 +46,8 @@ struct Synced {
     kind: FieldKind,
     action: EnterAction,
     seen: bool,
+    /// The keyboard's in-progress word (bytes), drawn underlined.
+    composing: Option<std::ops::Range<usize>>,
 }
 
 #[derive(Default)]
@@ -54,6 +56,9 @@ pub struct Ime {
     /// Snapshot caret to apply after egui processed our injected edit: (field, anchor, head).
     pending_cursor: Option<(Id, usize, usize)>,
     toolbar_shown: bool,
+    /// The text Java's mirror holds, as far as we know: focusing a field with the same text
+    /// then needs no keyboard restart.
+    mirror: Option<String>,
     /// Last insets / configuration seen (also in [`Ime::events`]).
     pub insets: Insets,
     pub config: Option<Config>,
@@ -150,26 +155,25 @@ impl Ime {
                 }
                 if *text != f.text {
                     // Changed by the app or by egui (not by the keyboard): the keyboard must resync.
-                    crate::set_state(text, anchor..anchor);
-                    crate::set_selection(text, anchor, head);
+                    crate::set_text(text, anchor, head);
+                    self.mirror = Some(text.clone());
+                    f.composing = None;
                 } else if (anchor, head) != (f.anchor, f.head) {
                     crate::set_selection(text, anchor, head);
                 }
-                *f = Synced {
-                    id,
-                    text: text.clone(),
-                    anchor,
-                    head,
-                    kind,
-                    action,
-                    seen: true,
-                };
+                f.text = text.clone();
+                (f.anchor, f.head, f.kind, f.action, f.seen) = (anchor, head, kind, action, true);
             }
             _ => {
-                // Newly focused field: open the keyboard with its content.
+                // Newly focused field: open the keyboard with its content. If Java already
+                // holds this text (e.g. refocusing the same field), skip the restart.
                 crate::show(kind, action);
-                crate::set_state(text, anchor..anchor);
-                crate::set_selection(text, anchor, head);
+                if self.mirror.as_deref() == Some(text.as_str()) {
+                    crate::set_selection(text, anchor, head);
+                } else {
+                    crate::set_text(text, anchor, head);
+                    self.mirror = Some(text.clone());
+                }
                 self.focused = Some(Synced {
                     id,
                     text: text.clone(),
@@ -178,8 +182,13 @@ impl Ime {
                     kind,
                     action,
                     seen: true,
+                    composing: None,
                 });
             }
+        }
+
+        if let Some(c) = self.focused.as_ref().and_then(|f| f.composing.clone()) {
+            underline(ui, &out, text, c);
         }
 
         if kind != FieldKind::Password {
@@ -211,7 +220,9 @@ impl Ime {
 
     /// Keyboard snapshot → egui events (see module docs).
     fn apply_snapshot(&mut self, ctx: &Context, raw: &mut RawInput, s: &crate::TextState) {
+        self.mirror = Some(s.text.clone());
         let Some(f) = &mut self.focused else { return };
+        f.composing = s.composing.clone();
         if s.text != f.text {
             let (start, old_end, new_end) = text::diff(&f.text, &s.text);
             let inserted = &s.text[start..new_end];
@@ -313,6 +324,35 @@ impl Ime {
         } else if !has_selection && self.toolbar_shown {
             crate::hide_toolbar();
             self.toolbar_shown = false;
+        }
+    }
+}
+
+/// Underline the keyboard's composing range, like a native text field does.
+fn underline(ui: &Ui, out: &TextEditOutput, text: &str, c: std::ops::Range<usize>) {
+    let (start, end) = (
+        text::byte_to_char(text, c.start),
+        text::byte_to_char(text, c.end),
+    );
+    if start >= end {
+        return;
+    }
+    let painter = ui.painter_at(out.text_clip_rect);
+    let stroke = Stroke::new(1.5, ui.visuals().text_color());
+    let at = |i: usize| {
+        out.galley
+            .pos_from_cursor(CCursor::new(i))
+            .translate(out.galley_pos.to_vec2())
+    };
+    // Per character, so it follows wrapped rows and right-to-left runs.
+    for i in start..end {
+        let (a, b) = (at(i), at(i + 1));
+        if (a.bottom() - b.bottom()).abs() < 1.0 {
+            painter.hline(
+                a.left().min(b.left())..=a.left().max(b.left()),
+                a.bottom() - 1.0,
+                stroke,
+            );
         }
     }
 }

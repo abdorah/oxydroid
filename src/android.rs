@@ -188,10 +188,17 @@ pub fn hide() {
 }
 
 /// App write: replaces text and selection (Q1: always wins). Restarts the keyboard session.
-/// Returns the sequence number stamped on it.
+/// Returns the sequence number stamped on it. Same as [`set_text`] with a forward selection.
 pub fn set_state(text: &str, selection: Range<usize>) -> u64 {
+    set_text(text, selection.start, selection.end)
+}
+
+/// App write: replaces the text and sets the selection, keeping its direction (`head` may be
+/// before `anchor`). One keyboard restart. Returns the sequence number.
+pub fn set_text(text: &str, anchor: usize, head: usize) -> u64 {
     let seq = APP_SEQ.fetch_add(1, Ordering::SeqCst) + 1;
-    let (s, e) = (utf16(text, selection.start), utf16(text, selection.end));
+    // Android's Selection.setSelection(start, stop) keeps start as the anchor even if start > stop.
+    let (s, e) = (utf16(text, anchor), utf16(text, head));
     with_env(|env| {
         let jtext = env.new_string(text)?;
         env.call_static_method(
@@ -465,4 +472,47 @@ pub fn debug_take_messages() -> Vec<String> {
 #[doc(hidden)]
 pub fn dropped_snapshots() -> u64 {
     DROPPED.load(Ordering::Relaxed)
+}
+
+/// A string extra of the launch intent (`adb shell am start --es key value`, or a deep link).
+/// `activity` is `AndroidApp::activity_as_ptr()`.
+pub fn intent_extra(activity: *mut c_void, key: &str) -> Option<String> {
+    let glue = GLUE.get()?;
+    let mut env = glue.vm.attach_current_thread_permanently().ok()?;
+    let activity = unsafe { JObject::from_raw(activity.cast()) };
+    let class: &JClass = glue.class.as_obj().into();
+    checked(&mut env, |env| {
+        let k = env.new_string(key)?;
+        let v = env
+            .call_static_method(
+                class,
+                "intentExtra",
+                "(Landroid/app/Activity;Ljava/lang/String;)Ljava/lang/String;",
+                &[(&activity).into(), (&k).into()],
+            )?
+            .l()?;
+        if v.is_null() {
+            return Ok(None);
+        }
+        Ok(Some(env.get_string(&JString::from(v))?.into()))
+    })
+    .ok()
+    .flatten()
+}
+
+/// Simulate one keyboard call on the InputConnection, as a keyboard app makes it:
+/// `op` = `commit`/`compose` (text), `finish`, `delete` (a = code points before),
+/// `select` (a, b in UTF-16 units), `menu` (a = `android.R.id.*`), `key` (a = keycode).
+#[doc(hidden)]
+pub fn debug_keyboard(op: &str, text: &str, a: i32, b: i32) {
+    with_env(|env| {
+        let (o, t) = (env.new_string(op)?, env.new_string(text)?);
+        env.call_static_method(
+            class(),
+            "debugKeyboard",
+            "(Ljava/lang/String;Ljava/lang/String;II)V",
+            &[(&o).into(), (&t).into(), JValue::Int(a), JValue::Int(b)],
+        )
+        .map(|_| ())
+    });
 }

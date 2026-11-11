@@ -190,8 +190,24 @@ final class InputView extends View {
 
     /** Simulate the keyboard committing text, through the same path a real keyboard uses. */
     void debugKeyboardCommit(String text) {
+        debugKeyboard("commit", text, 0, 0);
+    }
+
+    /** Simulate one keyboard call on the InputConnection, exactly as a keyboard app makes it.
+     *  op: commit(text) | compose(text) | finish | delete(a = code points before) |
+     *      select(a, b) | menu(a = android.R.id.*) | key(a = keycode). */
+    void debugKeyboard(String op, String text, int a, int b) {
         if (mConn == null) mConn = new Connection();
-        mConn.commitText(text, 1);
+        switch (op) {
+            case "commit": mConn.commitText(text, 1); break;
+            case "compose": mConn.setComposingText(text, 1); break;
+            case "finish": mConn.finishComposingText(); break;
+            case "delete": mConn.deleteSurroundingTextInCodePoints(a, 0); break;
+            case "select": mConn.setSelection(a, b); break;
+            case "menu": mConn.performContextMenuAction(a); break;
+            case "key": mConn.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, a)); break;
+            default: break;
+        }
     }
 
     /** Average cost of one per-keystroke snapshot (toString + JNI + Rust) for a text of n chars.

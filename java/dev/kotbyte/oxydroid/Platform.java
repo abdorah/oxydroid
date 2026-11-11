@@ -206,11 +206,26 @@ public final class Platform {
         }
     }
 
+    // ---- Launch intent ----
+
+    /** A string extra of the launch intent (e.g. `adb shell am start --es key value`, deep links).
+     *  Reads the activity given to install(); synchronous, any thread. */
+    public static String intentExtra(Activity activity, String key) {
+        android.content.Intent i = activity.getIntent();
+        return i == null ? null : i.getStringExtra(key);
+    }
+
     // ---- Test hooks (demo self-tests; not public API) ----
 
     public static void debugKeyboardCommit(final String text) {
         post(new Runnable() {
             @Override public void run() { if (sInput != null) sInput.debugKeyboardCommit(text); }
+        });
+    }
+
+    public static void debugKeyboard(final String op, final String text, final int a, final int b) {
+        post(new Runnable() {
+            @Override public void run() { if (sInput != null) sInput.debugKeyboard(op, text, a, b); }
         });
     }
 

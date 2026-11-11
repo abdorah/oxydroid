@@ -3,7 +3,10 @@
 //! - Chat: Enter = Send; the field is cleared by the app (an app write, Q1).
 //! - Back logs you out (Android 13+); dark mode follows the system; insets pad the top.
 //! - Self-tests: the Q1 race and the per-keystroke snapshot cost.
+//! - `--es oxytest 1` on launch runs the scripted test in `autotest.rs`.
 #![cfg(target_os = "android")]
+
+mod autotest;
 
 use egui::{Key, TextEdit};
 use oxydroid::{EnterAction, Event, FieldKind, egui::Ime};
@@ -18,6 +21,10 @@ fn android_main(app: winit::platform::android::activity::AndroidApp) {
     if let Err(e) = oxydroid::init(app.vm_as_ptr(), app.activity_as_ptr()) {
         log::error!("oxydroid::init failed: {e:?}");
     }
+    let autotest = oxydroid::intent_extra(app.activity_as_ptr(), "oxytest").is_some();
+    if autotest {
+        log::info!("oxytest: starting scripted test");
+    }
     let options = eframe::NativeOptions {
         android_app: Some(app),
         ..Default::default()
@@ -27,7 +34,9 @@ fn android_main(app: winit::platform::android::activity::AndroidApp) {
         options,
         Box::new(|cc| {
             add_system_fonts(&cc.egui_ctx);
-            Ok(Box::new(Demo::new(Ime::new(&cc.egui_ctx))))
+            let mut demo = Demo::new(Ime::new(&cc.egui_ctx));
+            demo.autotest = autotest.then(autotest::AutoTest::new);
+            Ok(Box::new(demo))
         }),
     )
     .unwrap();
@@ -51,6 +60,8 @@ struct Demo {
     results: Vec<String>,
     race: Option<RaceTest>,
     edge_to_edge: bool,
+    autotest: Option<autotest::AutoTest>,
+    user_id: Option<egui::Id>,
 }
 
 impl Demo {
@@ -66,6 +77,8 @@ impl Demo {
             results: Vec::new(),
             race: None,
             edge_to_edge: false,
+            autotest: None,
+            user_id: None,
         }
     }
 
@@ -147,6 +160,7 @@ impl eframe::App for Demo {
         for m in oxydroid::debug_take_messages() {
             self.result(format!("latency: {m}"));
         }
+        self.run_autotest(&ctx);
 
         let ppp = ctx.pixels_per_point();
         let top = self.ime.insets.top as f32 / ppp;
@@ -168,6 +182,7 @@ impl eframe::App for Demo {
                                 .desired_width(wide)
                         },
                     );
+                    self.user_id = Some(user.response.id);
                     if user.response.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) {
                         self.focus_pass = true;
                     }
