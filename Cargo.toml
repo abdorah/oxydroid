@@ -1,0 +1,19 @@
+[package]
+name = "oxydroid"
+version = "0.0.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+keywords = ["android", "ime", "keyboard", "nativeactivity", "jni"]
+categories = ["gui", "os::android-apis"]
+exclude = [".github"]
+description = "Android platform services for Rust UI apps on NativeActivity: keyboard (IME), clipboard, insets, back, dark mode. No JDK needed."
+publish = false
+
+[dependencies]
+log = "0.4"
+
+# jni 0.21 on purpose: same API as accesskit_android (notes/01); android-activity uses 0.22
+# internally, and the two coexist. Revisit when moving to a real release.
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"

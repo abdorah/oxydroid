@@ -1,0 +1,45 @@
+# Runs on GitHub Actions and on Forgejo Actions (which also reads .github/workflows).
+name: CI
+on: [push, pull_request]
+
+jobs:
+  host:
+    name: Tests, fmt, clippy (host)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - run: cargo test
+      - run: cargo clippy -- -D warnings
+
+  android:
+    name: Check + clippy (aarch64-linux-android)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+          components: clippy
+      # Library crate, no linking: no NDK needed for check/clippy.
+      - run: cargo clippy --target aarch64-linux-android -- -D warnings
+
+  dex:
+    name: Committed classes.dex matches java/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-36 build-tools;36.1.0"
+      - run: |
+          cp classes.dex /tmp/committed.dex
+          ./build-dex.sh
+          cmp classes.dex /tmp/committed.dex || { echo "classes.dex is stale: run ./build-dex.sh and commit"; exit 1; }
