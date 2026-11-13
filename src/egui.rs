@@ -28,7 +28,7 @@
 //! - Arrow keys are forwarded to egui, which moves the caret with its own (bidi-aware) layout.
 //! - Composing text is applied as plain text: no underline yet.
 
-use crate::{Config, EnterAction, Event, FieldKind, Insets, text};
+use crate::{Caret, Config, EnterAction, Event, FieldKind, Insets, text};
 use ::egui::{
     Context, Id, Key, LayerId, Modifiers, Order, Pos2, RawInput, Rect, Sense, Stroke, TextEdit, Ui,
     Vec2,
@@ -56,6 +56,7 @@ pub struct Ime {
     /// Snapshot caret to apply after egui processed our injected edit: (field, anchor, head).
     pending_cursor: Option<(Id, usize, usize)>,
     toolbar_shown: bool,
+    caret: Option<Caret>,
     window_focused: bool,
     /// The text Java's mirror holds, as far as we know: focusing a field with the same text
     /// then needs no keyboard restart.
@@ -219,11 +220,35 @@ impl Ime {
             underline(ui, &out, text, c);
         }
 
+        self.update_caret(ui, &out, text, head);
         if kind != FieldKind::Password {
             self.selection_handles(ui, &mut out);
         }
         self.update_toolbar(ui, &out, text, anchor, head);
         out
+    }
+
+    /// Report the caret's position so keyboards can place their own UI next to it (Gboard's
+    /// floating cursor and handwriting, OEM prediction popups). Only sent when it moves.
+    fn update_caret(&mut self, ui: &Ui, out: &TextEditOutput, text: &str, head: usize) {
+        let cursor = CCursor::new(text::byte_to_char(text, head));
+        let r = out
+            .galley
+            .pos_from_cursor(cursor)
+            .translate(out.galley_pos.to_vec2());
+        let ppp = ui.ctx().pixels_per_point();
+        let caret = Caret {
+            x: r.left() * ppp,
+            top: r.top() * ppp,
+            bottom: r.bottom() * ppp,
+            // egui 0.37 lays out every run left-to-right and doesn't expose per-run direction,
+            // so there is nothing truthful to report yet. Revisit with egui's bidi work (#1016).
+            rtl: false,
+        };
+        if self.caret != Some(caret) {
+            self.caret = Some(caret);
+            crate::set_caret(Some(caret));
+        }
     }
 
     /// Call at the end of `ui()`, after every text field.
@@ -239,6 +264,9 @@ impl Ime {
     fn unfocus(&mut self) {
         self.focused = None;
         self.pending_cursor = None;
+        if self.caret.take().is_some() {
+            crate::set_caret(None);
+        }
         if self.toolbar_shown {
             crate::hide_toolbar();
             self.toolbar_shown = false;

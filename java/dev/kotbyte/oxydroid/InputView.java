@@ -11,6 +11,7 @@ package dev.kotbyte.oxydroid;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.InputType;
@@ -21,7 +22,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.CursorAnchorInfo;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 
@@ -34,6 +38,12 @@ final class InputView extends View {
     boolean mArrowsToApp = false;
     private ActionMode mToolbar;
     private final Rect mToolbarRect = new Rect();
+    // Caret geometry from the app (window px), for CursorAnchorInfo. NaN = unknown.
+    private float mCaretX = Float.NaN;
+    private float mCaretTop;
+    private float mCaretBottom;
+    private boolean mCaretRtl;
+    private final int[] mScreenLocation = new int[2];
 
     InputView(Context ctx) {
         super(ctx);
@@ -209,6 +219,15 @@ final class InputView extends View {
             case "select": mConn.setSelection(a, b); break;
             case "menu": mConn.performContextMenuAction(a); break;
             case "key": mConn.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, a)); break;
+            case "cursorupdates": mConn.requestCursorUpdates(a); break;
+            case "extract": {
+                ExtractedTextRequest req = new ExtractedTextRequest();
+                req.token = a;
+                ExtractedText et = mConn.getExtractedText(req, b);
+                Platform.nativeOnDebug(et == null ? "extracted=null"
+                        : "extracted=" + et.text + " sel=" + et.selectionStart + ".." + et.selectionEnd);
+                break;
+            }
             default: break;
         }
     }
@@ -228,21 +247,123 @@ final class InputView extends View {
         return n + " chars: " + avgUs + " us per snapshot";
     }
 
-    /** Send one snapshot to Rust, and keep the keyboard's model of the cursor in sync. */
+    /** Caret geometry in window pixels, from the app's own layout. Needed by keyboards that
+     *  place UI next to the caret: Gboard's floating-cursor and handwriting, OEM prediction
+     *  overlays. `hasCaret` false while nothing is being edited. */
+    void setCaret(boolean hasCaret, float x, float top, float bottom, boolean rtl) {
+        mCaretX = hasCaret ? x : Float.NaN;
+        mCaretTop = top;
+        mCaretBottom = bottom;
+        mCaretRtl = rtl;
+        if (mConn != null) {
+            mConn.reportCursorAnchorInfoIfMonitoring();
+        }
+    }
+
+    /** Send one snapshot to Rust, and keep the keyboard's model of the editor in sync. */
     private void report() {
         int ss = Selection.getSelectionStart(mEditable);
         int se = Selection.getSelectionEnd(mEditable);
         int cs = BaseInputConnection.getComposingSpanStart(mEditable);
         int ce = BaseInputConnection.getComposingSpanEnd(mEditable);
         mImm.updateSelection(this, ss, se, cs, ce);
+        if (mConn != null) {
+            mConn.reportExtractedTextIfMonitoring();
+            mConn.reportCursorAnchorInfoIfMonitoring();
+        }
         Platform.nativeOnState(mEditable.toString(), ss, se, cs, ce, mLastAppSeq);
     }
 
     private final class Connection extends BaseInputConnection {
         private int mBatch = 0;
         private boolean mShiftHeld = false;
+        private boolean mMonitorCursor = false;
+        private CursorAnchorInfo.Builder mAnchorBuilder;
+        private final Matrix mViewToScreen = new Matrix();
+        private ExtractedTextRequest mExtractRequest;   // non-null = the IME is monitoring
+        private final ExtractedText mExtracted = new ExtractedText();
 
         Connection() { super(InputView.this, true); }   // full editor: edits go to getEditable()
+
+        // ---- Telling the keyboard about the editor (beyond updateSelection) ----
+
+        /** Where the caret is on screen. Keyboards ask for this to place their own UI. */
+        @Override public boolean requestCursorUpdates(int cursorUpdateMode) {
+            if ((cursorUpdateMode & InputConnection.CURSOR_UPDATE_IMMEDIATE) != 0) {
+                sendCursorAnchorInfo();
+            }
+            mMonitorCursor = (cursorUpdateMode & InputConnection.CURSOR_UPDATE_MONITOR) != 0;
+            return true;
+        }
+
+        void reportCursorAnchorInfoIfMonitoring() {
+            if (mMonitorCursor) {
+                sendCursorAnchorInfo();
+            }
+        }
+
+        private void sendCursorAnchorInfo() {
+            if (mAnchorBuilder == null) {
+                mAnchorBuilder = new CursorAnchorInfo.Builder();
+            } else {
+                mAnchorBuilder.reset();
+            }
+            int ss = Selection.getSelectionStart(mEditable);
+            int se = Selection.getSelectionEnd(mEditable);
+            mAnchorBuilder.setSelectionRange(ss, se);
+            int cs = BaseInputConnection.getComposingSpanStart(mEditable);
+            int ce = BaseInputConnection.getComposingSpanEnd(mEditable);
+            if (cs >= 0 && ce > cs) {
+                mAnchorBuilder.setComposingText(cs, mEditable.subSequence(cs, ce));
+            } else {
+                mAnchorBuilder.setComposingText(-1, "");
+            }
+            // The app's coordinates are window-relative; the IME works in screen coordinates.
+            getLocationOnScreen(mScreenLocation);
+            mViewToScreen.setTranslate(mScreenLocation[0], mScreenLocation[1]);
+            mAnchorBuilder.setMatrix(mViewToScreen);
+            if (!Float.isNaN(mCaretX)) {
+                int flags = CursorAnchorInfo.FLAG_HAS_VISIBLE_REGION | (mCaretRtl ? CursorAnchorInfo.FLAG_IS_RTL : 0);
+                // No separate baseline from the toolkit: the bottom of the caret is close enough
+                // for placing keyboard UI.
+                mAnchorBuilder.setInsertionMarkerLocation(mCaretX, mCaretTop, mCaretBottom, mCaretBottom, flags);
+            }
+            mImm.updateCursorAnchorInfo(InputView.this, mAnchorBuilder.build());
+        }
+
+        /** The whole text, for fullscreen (landscape) keyboards and extracted-text monitors.
+         *  Returning null, as BaseInputConnection does, makes some keyboards disable
+         *  suggestions and gesture typing. */
+        @Override public ExtractedText getExtractedText(ExtractedTextRequest request, int flags) {
+            mExtractRequest = (flags & InputConnection.GET_EXTRACTED_TEXT_MONITOR) != 0 ? request : null;
+            return buildExtractedText(request);
+        }
+
+        private ExtractedText buildExtractedText(ExtractedTextRequest request) {
+            mExtracted.startOffset = 0;
+            mExtracted.partialStartOffset = -1;
+            mExtracted.partialEndOffset = -1;
+            mExtracted.selectionStart = Selection.getSelectionStart(mEditable);
+            mExtracted.selectionEnd = Selection.getSelectionEnd(mEditable);
+            mExtracted.flags = (mInputType & InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0
+                    ? 0 : ExtractedText.FLAG_SINGLE_LINE;
+            boolean withStyles = request != null && (request.flags & InputConnection.GET_TEXT_WITH_STYLES) != 0;
+            mExtracted.text = withStyles ? mEditable : mEditable.toString();
+            return mExtracted;
+        }
+
+        void reportExtractedTextIfMonitoring() {
+            if (mExtractRequest != null) {
+                mImm.updateExtractedText(InputView.this, mExtractRequest.token,
+                        buildExtractedText(mExtractRequest));
+            }
+        }
+
+        @Override public void closeConnection() {
+            super.closeConnection();
+            mMonitorCursor = false;
+            mExtractRequest = null;
+        }
 
         @Override public Editable getEditable() { return mEditable; }
 

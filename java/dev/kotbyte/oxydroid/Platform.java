@@ -107,6 +107,14 @@ public final class Platform {
         });
     }
 
+    /** Caret geometry in window pixels, for keyboards that place UI next to the caret. */
+    public static void setCaret(final boolean hasCaret, final float x, final float top,
+                                final float bottom, final boolean rtl) {
+        post(new Runnable() {
+            @Override public void run() { if (sInput != null) sInput.setCaret(hasCaret, x, top, bottom, rtl); }
+        });
+    }
+
     /** true: arrow keys go to the app (visual, bidi-aware movement). false: logical fallback. */
     public static void setArrowsToApp(final boolean toApp) {
         post(new Runnable() {

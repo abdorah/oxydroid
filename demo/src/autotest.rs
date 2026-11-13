@@ -13,6 +13,9 @@ const SELECT_ALL: i32 = 0x0102_001f;
 const CUT: i32 = 0x0102_0020;
 const PASTE: i32 = 0x0102_0022;
 const KEYCODE_DEL: i32 = 67;
+/// InputConnection.CURSOR_UPDATE_*
+const CURSOR_UPDATE_IMMEDIATE: i32 = 1;
+const CURSOR_UPDATE_MONITOR: i32 = 2;
 const STEP_SECONDS: f64 = 1.0;
 /// screencap over Wi-Fi takes ~1 s: hold the state that long after a shot cue.
 const SHOT_HOLD_SECONDS: f64 = 2.5;
@@ -171,14 +174,35 @@ impl Demo {
             }
             15 => {
                 self.expect_user("DEL key event", "app wrote");
-                self.focus_pass = true; // move to the password field
+                // What Gboard asks for: the caret's screen position, and the whole text.
+                kb(
+                    "cursorupdates",
+                    "",
+                    CURSOR_UPDATE_IMMEDIATE | CURSOR_UPDATE_MONITOR,
+                    0,
+                );
+                kb("extract", "", 1, 0);
                 Then::Act
             }
             16 => {
-                kb("commit", "s3cret", 0, 0);
+                let extracted = self
+                    .results
+                    .iter()
+                    .rev()
+                    .find_map(|r| r.strip_prefix("latency: extracted=").map(str::to_owned));
+                self.check(
+                    "getExtractedText returns the text and selection",
+                    extracted.as_deref() == Some("app wrote sel=9..9"),
+                    format!("{extracted:?}"),
+                );
+                self.focus_pass = true; // move to the password field
                 Then::Act
             }
             17 => {
+                kb("commit", "s3cret", 0, 0);
+                Then::Act
+            }
+            18 => {
                 let ok = self.pass == "s3cret";
                 self.check(
                     "password field gets text",
@@ -187,11 +211,11 @@ impl Demo {
                 );
                 Then::Shot("17-password")
             }
-            18 => {
+            19 => {
                 self.start_race_test();
                 Then::Act
             }
-            19 => {
+            20 => {
                 for n in [1_000, 10_000, 100_000] {
                     oxydroid::debug_time_report(n);
                 }

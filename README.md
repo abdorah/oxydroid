@@ -30,6 +30,8 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Floating Cut/Copy/Paste toolbar | ✅ (fixed: was invisible before 2026-11-11; screenshot in the test report) |
 | Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ (status 53 px, nav 84 px, keyboard 608–678 px) |
 | Dark mode / font scale / density changes | ✅ |
+| `CursorAnchorInfo` / `requestCursorUpdates`: caret position on screen (Gboard floating cursor, handwriting) | 🧪 new, **not yet device-verified** |
+| `getExtractedText` / `updateExtractedText`: fullscreen keyboards, extracted-text monitors | 🧪 new, **not yet device-verified** |
 | Back via `OnBackInvokedCallback` (Android 13+) | ⚠️ implemented, **untested** (needs Android 13+) |
 | **egui adapter** (feature `egui`): plain `egui::TextEdit` with real keyboard input | ✅ sign-in form + chat demo |
 | Draggable selection handles (drawn by the toolkit adapter) | ✅ egui adapter |

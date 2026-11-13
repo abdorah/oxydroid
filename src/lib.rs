@@ -93,6 +93,20 @@ pub enum EnterAction {
     Search = 5,
 }
 
+/// Where the caret is, in physical pixels of the window surface. Passed to `set_caret` so
+/// keyboards can place their own UI next to it (floating cursor, handwriting, prediction popups).
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Caret {
+    /// Horizontal position of the insertion marker.
+    pub x: f32,
+    /// Top of the text line.
+    pub top: f32,
+    /// Bottom of the text line.
+    pub bottom: f32,
+    /// The caret sits in right-to-left text (Arabic, Hebrew…).
+    pub rtl: bool,
+}
+
 /// Areas covered by system UI, in physical pixels of the window surface.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Insets {

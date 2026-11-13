@@ -4,7 +4,7 @@
 //! One `Platform` per process (a NativeActivity app has one activity), so global state is enough
 //! and Java never holds Rust pointers: there's nothing to dangle.
 
-use crate::{Config, EnterAction, Error, Event, FieldKind, Insets, TextState, offsets};
+use crate::{Caret, Config, EnterAction, Error, Event, FieldKind, Insets, TextState, offsets};
 use jni::{
     JNIEnv, JavaVM, NativeMethod,
     objects::{GlobalRef, JClass, JObject, JString, JValue},
@@ -228,6 +228,25 @@ pub fn set_selection(text: &str, anchor: usize, head: usize) -> u64 {
     ];
     call("setSelection", "(IIJ)V", &args);
     seq
+}
+
+/// Tell the keyboard where the caret is, in window pixels (see [`Caret`]). Keyboards use it to
+/// place their own UI: Gboard's floating cursor and handwriting, OEM prediction popups. Without
+/// it those features silently do nothing. Call it when the caret moves; `None` while no field is
+/// being edited.
+pub fn set_caret(caret: Option<Caret>) {
+    let c = caret.unwrap_or_default();
+    call(
+        "setCaret",
+        "(ZFFFZ)V",
+        &[
+            JValue::Bool(caret.is_some() as jboolean),
+            JValue::Float(c.x),
+            JValue::Float(c.top),
+            JValue::Float(c.bottom),
+            JValue::Bool(c.rtl as jboolean),
+        ],
+    );
 }
 
 /// Arrow keys are *visual* on Android (in Arabic, Right moves backwards). Only the app's layout

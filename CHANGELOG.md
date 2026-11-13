@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `set_caret(Option<Caret>)` -> `CursorAnchorInfo` + `requestCursorUpdates`: the caret's screen
+  position, selection and composing region. Keyboards need it for the floating cursor, handwriting
+  and prediction popups. The egui adapter sends it when the caret moves.
+- `getExtractedText` / `updateExtractedText`: some keyboards disable suggestions and gesture typing
+  when an editor returns null here (`BaseInputConnection`'s default).
+- `closeConnection` clears both monitors.
+
 Fixed (found by the on-device test, docs/test-reports/2026-11-11-a20):
 - egui adapter: apply only the last keyboard snapshot per frame (two snapshots in one frame
   corrupted edits).
