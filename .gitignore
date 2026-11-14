@@ -2,3 +2,7 @@ target/
 Cargo.lock
 demo/target/
 demo/Cargo.lock
+bevy/target/
+bevy/Cargo.lock
+templates/*/target/
+templates/*/Cargo.lock

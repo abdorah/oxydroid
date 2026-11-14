@@ -1,0 +1,16 @@
+[package]
+name = "oxydroid-bevy"
+version = "0.0.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/abdorah/oxydroid"
+description = "Android soft-keyboard (IME) input for Bevy's TextInput widgets, through oxydroid. No JDK needed."
+keywords = ["android", "bevy", "ime", "keyboard", "text-input"]
+categories = ["game-development", "gui", "os::android-apis"]
+publish = false
+
+[dependencies]
+log = "0.4"
+oxydroid = { path = ".." }
+# Only what the plugin touches; the app picks the rest (rendering, UI, the Android backend).
+bevy = { version = "0.20", default-features = false, features = ["bevy_window", "bevy_text", "bevy_input_focus"] }

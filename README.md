@@ -68,6 +68,26 @@ is underlined. See [`demo/`](demo) for a sign-in form and a chat box.
 **Cost per keystroke** (snapshot: Java → JNI → Rust, A20): ~0.1 ms at 1k chars, ~0.5 ms at 10k,
 ~3.5 ms at 100k. Mirroring the whole text is fine for normal fields and documents.
 
+## Toolkits and starter templates
+
+| Toolkit | Integration | Starter |
+|---|---|---|
+| **egui** 0.37 | `oxydroid::egui::Ime` (feature `egui`): plain `TextEdit`s | `templates/egui-app` |
+| **Bevy** 0.20 | [`oxydroid-bevy`](bevy): `OxydroidPlugin`, plain `TextInput` widgets | `templates/bevy-app` |
+| anything winit-style | `oxydroid::winit_ime::Translator`: snapshots → `Preedit` / `Commit` / `DeleteSurrounding` | |
+
+```bash
+templates/new-app.sh egui my-notes   # or: bevy my-game; add --git to depend on GitHub
+cd my-notes && cargo apk run --lib
+```
+
+Bevy's `TextInput` already speaks winit's IME vocabulary, so the plugin only translates: it opens
+the keyboard when Bevy enables IME for a focused field, turns snapshots into `Ime` and
+`KeyboardInput` messages, and tells the keyboard when Bevy's caret or text changes (taps, arrow
+keys, app writes). Bevy's Parley layout moves the caret visually, right-to-left text included.
+Verified on the Android 16 emulator with Gboard: commit with accents, composing, delete, and an
+arrow key followed by typing. See [`templates/README.md`](templates/README.md).
+
 ## How it works
 
 - `java/` holds two small framework-only classes (no AndroidX). `build-dex.sh` compiles them **once,

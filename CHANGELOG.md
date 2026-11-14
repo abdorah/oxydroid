@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **oxydroid-bevy** (new crate in `bevy/`): `OxydroidPlugin` gives Bevy 0.20's `TextInput` widgets
+  real Android keyboard input (Ime/KeyboardInput messages via `winit_ime::Translator`), plus
+  `OxydroidEvent` messages and an `AndroidPlatform` resource.
+- **Starter templates**: `templates/egui-app`, `templates/bevy-app`, and `templates/new-app.sh`.
+- `winit_ime::ImeEdit::DeleteSurrounding` also gives `before_chars` / `after_chars`;
+  `Translator::text()` / `cursor()`.
+
 - Native selection handles: `set_handles(Handles, line_height)` shows the platform's own caret and
   selection handles (theme drawables, in popup windows above the native surface);
   `Event::Handle { which, x, y, phase }` reports drags. Magnifier (Android 10+) while dragging,

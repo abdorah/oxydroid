@@ -7,7 +7,7 @@ repository = "https://github.com/abdorah/oxydroid"
 readme = "README.md"
 keywords = ["android", "ime", "keyboard", "nativeactivity", "jni"]
 categories = ["gui", "os::android-apis"]
-exclude = [".github", "demo"]
+exclude = [".github", "demo", "bevy", "templates"]
 description = "Android platform services for Rust UI apps on NativeActivity: keyboard (IME), clipboard, insets, back, dark mode. No JDK needed."
 publish = false
 

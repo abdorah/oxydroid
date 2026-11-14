@@ -28,9 +28,12 @@ use crate::{TextState, text};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ImeEdit {
     /// Delete `before_bytes` before and `after_bytes` after the cursor (not counting the preedit).
+    /// The same amounts in characters too, for toolkits that delete by key presses (Bevy).
     DeleteSurrounding {
         before_bytes: usize,
         after_bytes: usize,
+        before_chars: usize,
+        after_chars: usize,
     },
     /// Insert committed text at the cursor.
     Commit(String),
@@ -81,6 +84,16 @@ fn split(s: &TextState) -> (String, usize, String, Option<(usize, usize)>) {
 }
 
 impl Translator {
+    /// The committed text (preedit excluded) the toolkit should hold now.
+    pub fn text(&self) -> &str {
+        &self.committed
+    }
+
+    /// The caret in [`Translator::text`], bytes.
+    pub fn cursor(&self) -> usize {
+        self.cursor
+    }
+
     /// Start from a known state (e.g. when a field gains focus).
     pub fn reset(&mut self, s: &TextState) {
         let (committed, cursor, preedit, _) = split(s);
@@ -113,6 +126,8 @@ impl Translator {
                 edits.push(ImeEdit::DeleteSurrounding {
                     before_bytes: before,
                     after_bytes: after,
+                    before_chars: self.committed[start..c].chars().count(),
+                    after_chars: self.committed[c..old_end].chars().count(),
                 });
             }
             if new_end > start {
@@ -203,9 +218,27 @@ mod tests {
             t.update(&snap("héll", 5, None)),
             Ok(vec![ImeEdit::DeleteSurrounding {
                 before_bytes: 1,
-                after_bytes: 0
+                after_bytes: 0,
+                before_chars: 1,
+                after_chars: 0
             }])
         );
+    }
+
+    #[test]
+    fn delete_counts_characters_not_just_bytes() {
+        let mut t = Translator::default();
+        t.reset(&snap("aé", 3, None));
+        assert_eq!(
+            t.update(&snap("a", 1, None)),
+            Ok(vec![ImeEdit::DeleteSurrounding {
+                before_bytes: 2,
+                after_bytes: 0,
+                before_chars: 1,
+                after_chars: 0
+            }])
+        );
+        assert_eq!((t.text(), t.cursor()), ("a", 1));
     }
 
     #[test]
@@ -217,7 +250,9 @@ mod tests {
             Ok(vec![
                 ImeEdit::DeleteSurrounding {
                     before_bytes: 2,
-                    after_bytes: 0
+                    after_bytes: 0,
+                    before_chars: 2,
+                    after_chars: 0
                 },
                 ImeEdit::Commit("he".into())
             ])
