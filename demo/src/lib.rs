@@ -62,6 +62,8 @@ struct Demo {
     edge_to_edge: bool,
     autotest: Option<autotest::AutoTest>,
     back_seen: bool,
+    /// Every keyboard height received (px), to check the slide animation arrives frame by frame.
+    ime_heights: Vec<i32>,
     user_id: Option<egui::Id>,
 }
 
@@ -80,6 +82,7 @@ impl Demo {
             edge_to_edge: false,
             autotest: None,
             back_seen: false,
+            ime_heights: Vec::new(),
             user_id: None,
         }
     }
@@ -145,6 +148,7 @@ impl eframe::App for Demo {
         let events = self.ime.take_events();
         for ev in &events {
             match ev {
+                Event::Insets(i) => self.ime_heights.push(i.ime_bottom),
                 Event::Back => {
                     self.back_seen = true;
                     self.signed_in = None;

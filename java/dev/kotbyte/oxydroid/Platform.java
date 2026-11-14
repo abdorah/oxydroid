@@ -9,7 +9,9 @@ package dev.kotbyte.oxydroid;
 
 import android.app.Activity;
 import android.content.ComponentCallbacks;
+import android.animation.ValueAnimator;
 import android.content.res.Configuration;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Insets;
 import android.graphics.Rect;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
+import android.view.WindowInsetsAnimation;
 import android.view.WindowInsetsController;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
@@ -40,7 +43,8 @@ public final class Platform {
     static native void nativeOnKey(int keyCode, int metaState);
     static native void nativeOnInsets(int left, int top, int right, int bottom, int imeBottom);
     static native void nativeOnBack();
-    static native void nativeOnConfig(boolean night, float fontScale, int densityDpi);
+    static native void nativeOnConfig(boolean night, float fontScale, int densityDpi,
+                                      int accentColor, boolean animations);
     static native void nativeOnDebug(String message);
 
     private Platform() {}
@@ -147,6 +151,24 @@ public final class Platform {
             }
         });
         decor.requestApplyInsets();
+        // Follow the keyboard while it slides in and out, frame by frame (API 30+), instead of
+        // one jump at the end. On our own view, not the decor: the animation callback is
+        // dispatched down the tree, and the decor's listener above stays the source of truth.
+        if (Build.VERSION.SDK_INT >= 30) Anim30.install(sInput);
+    }
+
+    /** Only loaded on API 30+. */
+    private static final class Anim30 {
+        static void install(View v) {
+            v.setWindowInsetsAnimationCallback(new WindowInsetsAnimation.Callback(
+                    WindowInsetsAnimation.Callback.DISPATCH_MODE_CONTINUE_ON_SUBTREE) {
+                @Override public WindowInsets onProgress(WindowInsets insets,
+                                                         java.util.List<WindowInsetsAnimation> running) {
+                    reportInsets(insets);
+                    return insets;
+                }
+            });
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -284,6 +306,16 @@ public final class Platform {
 
     static void reportConfig(Configuration c) {
         boolean night = (c.uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-        nativeOnConfig(night, c.fontScale, c.densityDpi);
+        nativeOnConfig(night, c.fontScale, c.densityDpi, accentColor(), ValueAnimator.areAnimatorsEnabled());
+    }
+
+    /** The theme's accent color, ARGB. On Android 12+ the device-default theme maps it to the
+     *  user's wallpaper-based (Material You) accent. 0 if unknown. */
+    private static int accentColor() {
+        if (sActivity == null) return 0;
+        TypedArray a = sActivity.getTheme().obtainStyledAttributes(new int[] { android.R.attr.colorAccent });
+        int color = a.getColor(0, 0);
+        a.recycle();
+        return color;
     }
 }

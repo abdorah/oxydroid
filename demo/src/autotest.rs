@@ -260,6 +260,33 @@ impl Demo {
                     .iter()
                     .any(|r| r.starts_with("race test: PASS"));
                 self.check("race test (Q1)", race_pass, "see race line".into());
+
+                // The keyboard opened and closed several times: with the animation callback
+                // (API 30+) the app sees the intermediate heights, not just 0 and the final one.
+                let mut heights = self.ime_heights.clone();
+                heights.sort_unstable();
+                heights.dedup();
+                let api = oxydroid::debug_api_level();
+                if api >= 30 {
+                    self.check(
+                        "keyboard slide arrives frame by frame",
+                        heights.len() >= 6,
+                        format!(
+                            "{} distinct heights, max {:?} px",
+                            heights.len(),
+                            heights.last()
+                        ),
+                    );
+                }
+                let cfg = self.ime.config;
+                self.check(
+                    "theme info: accent color + animations",
+                    cfg.is_some_and(|c| c.accent_color != 0),
+                    format!(
+                        "{:?}",
+                        cfg.map(|c| (format!("#{:08X}", c.accent_color), c.animations_enabled))
+                    ),
+                );
                 let t = self.autotest.as_mut().unwrap();
                 t.done = true;
                 let (p, f) = (t.passed, t.failed);

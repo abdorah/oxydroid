@@ -125,6 +125,11 @@ pub struct Config {
     /// The user's font size setting (1.0 = default).
     pub font_scale: f32,
     pub density_dpi: i32,
+    /// The theme's accent color, ARGB (`0xAARRGGBB`). On Android 12+ this is the user's
+    /// wallpaper-based Material You accent. 0 if unknown.
+    pub accent_color: u32,
+    /// `false` when the user turned animations off (accessibility, battery saver): skip yours too.
+    pub animations_enabled: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]

@@ -104,7 +104,7 @@ pub fn init(vm: *mut c_void, activity: *mut c_void) -> Result<(), Error> {
             ("nativeOnKey", "(II)V", on_key as *mut c_void),
             ("nativeOnInsets", "(IIIII)V", on_insets as *mut c_void),
             ("nativeOnBack", "()V", on_back as *mut c_void),
-            ("nativeOnConfig", "(ZFI)V", on_config as *mut c_void),
+            ("nativeOnConfig", "(ZFIIZ)V", on_config as *mut c_void),
             (
                 "nativeOnDebug",
                 "(Ljava/lang/String;)V",
@@ -450,12 +450,16 @@ extern "system" fn on_config(
     night: jboolean,
     font_scale: jfloat,
     dpi: jint,
+    accent: jint,
+    animations: jboolean,
 ) {
     guard("config", || {
         let c = Config {
             night_mode: night != 0,
             font_scale,
             density_dpi: dpi,
+            accent_color: accent as u32,
+            animations_enabled: animations != 0,
         };
         *CONFIG.lock().unwrap() = Some(c);
         push(Event::Config(c));

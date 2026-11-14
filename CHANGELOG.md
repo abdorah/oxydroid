@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Insets follow the keyboard's slide animation frame by frame (`WindowInsetsAnimation`, API 30+):
+  39 intermediate heights in the emulator test instead of one jump.
+- `Config` gains `accent_color` (ARGB; the Material You accent on Android 12+) and
+  `animations_enabled` (false when the user turned animations off).
+- Back verified on Android 16: handled -> `Event::Back`; unhandled -> the system closes the app.
+
 - `set_light_system_bars(bool)`: dark icons for a light UI under edge-to-edge (forced on Android 16,
   where white icons vanished on light themes). The egui adapter follows the theme automatically.
 - Fixed: the floating toolbar never stayed visible with Gboard (Android 16). Keyboards' no-op calls

@@ -30,11 +30,11 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Field kinds (password, number, email, multiline) + Enter action (Done/Send/Go/…) | ✅ |
 | Floating Cut/Copy/Paste toolbar | ✅ (fixed: was invisible before 2026-11-11; screenshot in the test report) |
 | Light/dark system-bar icons (`set_light_system_bars`; egui adapter follows the theme) | ✅ Android 16 emulator |
-| Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ (status 53 px, nav 84 px, keyboard 608–678 px) |
-| Dark mode / font scale / density changes | ✅ |
+| Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ keyboard height follows the slide animation frame by frame (API 30+) |
+| Dark mode / font scale / density, accent color (Material You on 12+), animations on/off | ✅ |
 | `CursorAnchorInfo` / `requestCursorUpdates`: caret position on screen (Gboard floating cursor, handwriting) | 🧪 new, **not yet device-verified** |
 | `getExtractedText` / `updateExtractedText`: fullscreen keyboards, extracted-text monitors | ✅ Android 16 + Gboard |
-| Back via `OnBackInvokedCallback` (Android 13+) | ✅ Android 16 emulator: handled → `Event::Back`; unhandled → system closes the app |
+| Back via `OnBackInvokedCallback` (Android 13+) | ✅ Android 16 emulator: handled → `Event::Back`; unhandled → the system closes the app |
 | **egui adapter** (feature `egui`): plain `egui::TextEdit` with real keyboard input | ✅ sign-in form + chat demo |
 | Draggable selection handles (drawn by the toolkit adapter) | ✅ egui adapter |
 
