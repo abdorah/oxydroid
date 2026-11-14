@@ -13,4 +13,4 @@ publish = false
 log = "0.4"
 oxydroid = { path = ".." }
 # Only what the plugin touches; the app picks the rest (rendering, UI, the Android backend).
-bevy = { version = "0.20", default-features = false, features = ["bevy_window", "bevy_text", "bevy_input_focus"] }
+bevy = { version = "0.20", default-features = false, features = ["bevy_window", "bevy_text", "bevy_input_focus", "bevy_ui"] }

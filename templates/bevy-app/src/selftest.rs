@@ -48,6 +48,8 @@ fn run(
     };
     let kb = oxydroid_bevy::oxydroid::debug_keyboard;
     let value = text.value().to_string();
+    let sel = text.editor().raw_selection();
+    let sel = (sel.anchor().index(), sel.focus().index());
     let check = |what: &str, ok: bool| {
         info!(
             "oxytest: {} {what}: {value:?}",
@@ -82,6 +84,25 @@ fn run(
                 "arrow key moved Bevy's caret, keyboard followed",
                 value == "héllo wor!l",
             );
+            kb("select", "", 6, 9); // the keyboard selects "wor" (UTF-16 offsets)
+        }
+        8 => {
+            check("keyboard selection reaches Bevy", sel == (7, 10));
+            kb("key", "", 67, 0); // delete key over the selection
+        }
+        9 => {
+            check("delete removes the whole selection", value == "héllo !l");
+            // Samsung's Select mode: Shift held, then arrows.
+            kb("key", "", 59, 0);
+            kb("key", "", 21, 0);
+            kb("key", "", 21, 0);
+        }
+        10 => {
+            check("Shift+arrows extend Bevy's selection", sel == (7, 5));
+            kb("key", "", 67, 0);
+        }
+        11 => {
+            check("delete after Shift+arrows", value == "héll!l");
             info!("oxytest: shot bevy-text-input");
         }
         _ => {

@@ -37,5 +37,6 @@ adb shell am start -S -n dev.example.mygame/android.app.NativeActivity --es oxyt
 adb logcat -d | grep oxytest
 ```
 It focuses the field and drives the real `InputConnection` the way a keyboard app does:
-commit, composing text, delete, and an arrow key followed by typing. 4/4 on the Android 16
-emulator (Gboard) and on a Galaxy A20 (Android 11, Samsung Keyboard).
+commit, composing text, delete, an arrow key followed by typing, a keyboard-side selection
+deleted as a whole, and Shift+arrows (Samsung's Select mode). 8/8 on the Android 16 emulator
+(Gboard); the first 4 steps also pass on a Galaxy A20 (Android 11, Samsung Keyboard).

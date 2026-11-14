@@ -82,12 +82,15 @@ templates/new-app.sh egui my-notes   # or: bevy my-game; add --git to depend on 
 cd my-notes && cargo apk run --lib
 ```
 
-Bevy's `TextInput` already speaks winit's IME vocabulary, so the plugin only translates: it opens
-the keyboard when Bevy enables IME for a focused field, turns snapshots into `Ime` and
-`KeyboardInput` messages, and tells the keyboard when Bevy's caret or text changes (taps, arrow
-keys, app writes). Bevy's Parley layout moves the caret visually, right-to-left text included.
+Bevy's text editor (Parley) models a field the way Android does: raw text, a compose range and an
+anchor/focus selection. So the plugin mirrors each snapshot into it: the changed range becomes a
+normal Bevy edit (filters and `max_characters` apply), then the compose range and the selection
+are set, so keyboard-side selections arrive intact. It opens the keyboard when Bevy enables IME
+for a focused field, and tells the keyboard when Bevy's caret or text changes (taps, arrow keys,
+Shift+arrows, app writes). Bevy's Parley layout moves the caret visually, right-to-left text included.
 Verified on the Android 16 emulator with Gboard and on a Galaxy A20 (Android 11) with Samsung
-Keyboard: commit with accents, composing, delete, and an arrow key followed by typing (4/4 each). See [`templates/README.md`](templates/README.md).
+Keyboard: commit with accents, composing, delete, and an arrow key followed by typing (4/4 each);
+keyboard selection + delete and Shift+arrow selection: emulator 8/8, A20 pending. See [`templates/README.md`](templates/README.md).
 
 ## How it works
 
