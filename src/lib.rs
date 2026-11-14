@@ -148,6 +148,49 @@ pub enum Event {
     /// Back gesture/button, delivered only while [`set_back_handled`]`(true)` (Android 13+).
     Back,
     Config(Config),
+    /// A native selection handle is being dragged (see [`set_handles`]). `x`, `y` is where its
+    /// tip should be, in window pixels: hit-test your layout just above it (half a line), move
+    /// the caret or that end of the selection there, and call [`set_handles`] again.
+    Handle {
+        which: HandleKind,
+        x: f32,
+        y: f32,
+        phase: HandlePhase,
+    },
+}
+
+/// Which native selection handle.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HandleKind {
+    /// The single handle under a caret.
+    Caret,
+    /// The selection's start (left in left-to-right text).
+    Start,
+    /// The selection's end.
+    End,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HandlePhase {
+    Down,
+    Move,
+    Up,
+}
+
+/// Where to show the platform's own selection handles. Positions are the handles' tips, in window
+/// pixels: the caret's x at the bottom of its text line.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub enum Handles {
+    #[default]
+    None,
+    Caret {
+        x: f32,
+        y: f32,
+    },
+    Selection {
+        start: (f32, f32),
+        end: (f32, f32),
+    },
 }
 
 #[derive(Debug)]

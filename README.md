@@ -5,7 +5,7 @@ clipboard, insets, back and dark mode. No JDK, no Gradle.**
 
 > Status: **experimental** (0.0.x). Tested on one device: Galaxy A20, Android 11, Samsung Keyboard.
 > Automated on-device runs: [Galaxy A20, Android 11, Samsung Keyboard: 13/13](docs/test-reports/2026-11-11-a20/REPORT.md) ·
-> [Android 16 emulator, Gboard: 14/14](docs/test-reports/2026-11-14-sdkgphone64x8664-api36/REPORT.md).
+> [Android 16 emulator, Gboard: 18/18](docs/test-reports/2026-11-14-sdkgphone64x8664-api36/REPORT.md).
 
 ## Why
 
@@ -36,7 +36,7 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | `getExtractedText` / `updateExtractedText`: fullscreen keyboards, extracted-text monitors | ✅ Android 16 + Gboard |
 | Back via `OnBackInvokedCallback` (Android 13+) | ✅ Android 16 emulator: handled → `Event::Back`; unhandled → the system closes the app |
 | **egui adapter** (feature `egui`): plain `egui::TextEdit` with real keyboard input | ✅ sign-in form + chat demo |
-| Draggable selection handles (drawn by the toolkit adapter) | ✅ egui adapter |
+| Native selection handles (platform drawables) + magnifier while dragging | ✅ Android 16 emulator, dragged with real touches |
 
 ## egui
 
@@ -61,7 +61,7 @@ impl eframe::App for App {
 
 The adapter diffs each keyboard snapshot against the field and types the change into egui (so
 egui's own undo, filters and layout apply). It resyncs the keyboard when the app or egui changes
-the text or caret, draws touch selection handles, shows the floating toolbar over a selection, and
+the text or caret, shows the platform's selection handles (with the magnifier), shows the floating toolbar over a selection, and
 suppresses egui-winit's own IME requests (on Android those hide/show the keyboard). Composing text
 is underlined. See [`demo/`](demo) for a sign-in form and a chat box.
 

@@ -4,7 +4,10 @@
 //! One `Platform` per process (a NativeActivity app has one activity), so global state is enough
 //! and Java never holds Rust pointers: there's nothing to dangle.
 
-use crate::{Caret, Config, EnterAction, Error, Event, FieldKind, Insets, TextState, offsets};
+use crate::{
+    Caret, Config, EnterAction, Error, Event, FieldKind, HandleKind, HandlePhase, Handles, Insets,
+    TextState, offsets,
+};
 use jni::{
     JNIEnv, JavaVM, NativeMethod,
     objects::{GlobalRef, JClass, JObject, JString, JValue},
@@ -105,6 +108,7 @@ pub fn init(vm: *mut c_void, activity: *mut c_void) -> Result<(), Error> {
             ("nativeOnInsets", "(IIIII)V", on_insets as *mut c_void),
             ("nativeOnBack", "()V", on_back as *mut c_void),
             ("nativeOnConfig", "(ZFIIZ)V", on_config as *mut c_void),
+            ("nativeOnHandle", "(IFFI)V", on_handle as *mut c_void),
             (
                 "nativeOnDebug",
                 "(Ljava/lang/String;)V",
@@ -228,6 +232,35 @@ pub fn set_selection(text: &str, anchor: usize, head: usize) -> u64 {
     ];
     call("setSelection", "(IIJ)V", &args);
     seq
+}
+
+/// Show the platform's own text-selection handles (or hide them with [`Handles::None`]).
+/// `line_height` (px) centres the magnifier on the text while a handle is dragged. Dragging
+/// arrives as [`Event::Handle`].
+pub fn set_handles(handles: Handles, line_height: f32) {
+    let (mode, a, b) = match handles {
+        Handles::None => (0, (0.0, 0.0), (0.0, 0.0)),
+        Handles::Caret { x, y } => (1, (x, y), (0.0, 0.0)),
+        Handles::Selection { start, end } => (2, start, end),
+    };
+    let px = |v: f32| JValue::Int(v.round() as jint);
+    call(
+        "setHandles",
+        "(IIIIII)V",
+        &[
+            JValue::Int(mode),
+            px(a.0),
+            px(a.1),
+            px(b.0),
+            px(b.1),
+            px(line_height),
+        ],
+    );
+}
+
+/// Tint for the native handles, ARGB. 0 keeps the platform's color.
+pub fn set_handle_color(argb: u32) {
+    call("setHandleColor", "(I)V", &[JValue::Int(argb as jint)]);
 }
 
 /// Tell the keyboard where the caret is, in window pixels (see [`Caret`]). Keyboards use it to
@@ -463,6 +496,29 @@ extern "system" fn on_config(
         };
         *CONFIG.lock().unwrap() = Some(c);
         push(Event::Config(c));
+    });
+}
+
+extern "system" fn on_handle(
+    _env: JNIEnv,
+    _class: JClass,
+    which: jint,
+    x: jfloat,
+    y: jfloat,
+    phase: jint,
+) {
+    guard("handle", || {
+        let which = match which {
+            1 => HandleKind::Start,
+            2 => HandleKind::End,
+            _ => HandleKind::Caret,
+        };
+        let phase = match phase {
+            0 => HandlePhase::Down,
+            2 => HandlePhase::Up,
+            _ => HandlePhase::Move,
+        };
+        push(Event::Handle { which, x, y, phase });
     });
 }
 

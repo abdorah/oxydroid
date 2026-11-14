@@ -82,6 +82,7 @@ final class InputView extends View {
 
     void hide() {
         hideToolbar();
+        setHandles(0, 0, 0, 0, 0, 0);
         mImm.hideSoftInputFromWindow(getWindowToken(), 0);
     }
 
@@ -106,6 +107,110 @@ final class InputView extends View {
     }
 
     private static int clamp(int x, int len) { return Math.max(0, Math.min(x, len)); }
+
+    // ---- Selection handles + magnifier ----
+
+    private Handle mCaretHandle;
+    private Handle mStartHandle;
+    private Handle mEndHandle;
+    private int mHandleColor;
+    private int mLineHeight;
+    private Object mMagnifier;   // android.widget.Magnifier, API 29+ only
+
+    /** mode 0: none, 1: caret handle at (ax, ay), 2: selection handles at (ax, ay) and (bx, by).
+     *  Positions are the tips, in window pixels: the caret's x at the bottom of its line. */
+    void setHandles(int mode, int ax, int ay, int bx, int by, int lineHeight) {
+        mLineHeight = lineHeight;
+        if (mode == 1) {
+            hideHandle(mStartHandle);
+            hideHandle(mEndHandle);
+            mCaretHandle = placeHandle(mCaretHandle, Handle.CARET, ax, ay);
+        } else if (mode == 2) {
+            hideHandle(mCaretHandle);
+            mStartHandle = placeHandle(mStartHandle, Handle.START, ax, ay);
+            mEndHandle = placeHandle(mEndHandle, Handle.END, bx, by);
+        } else {
+            hideHandle(mCaretHandle);
+            hideHandle(mStartHandle);
+            hideHandle(mEndHandle);
+        }
+        if (mToolbar != null) mToolbar.invalidateContentRect();   // it avoids the handles
+        showMagnifier();   // the dragged handle snapped to a new caret position
+    }
+
+    void setHandleColor(int argb) {
+        mHandleColor = argb;
+        for (Handle h : new Handle[] { mCaretHandle, mStartHandle, mEndHandle }) {
+            if (h != null) h.setColor(argb);
+        }
+    }
+
+    private Handle placeHandle(Handle h, int id, int x, int y) {
+        if (h == null) {
+            h = new Handle(this, id);
+            h.setColor(mHandleColor);
+        }
+        h.place(x, y);
+        return h;
+    }
+
+    private static void hideHandle(Handle h) {
+        if (h != null) h.hide();
+    }
+
+    private int visibleHandleHeight() {
+        int max = 0;
+        for (Handle h : new Handle[] { mCaretHandle, mStartHandle, mEndHandle }) {
+            if (h != null && h.isShowing()) max = Math.max(max, h.getDrawable().getIntrinsicHeight());
+        }
+        return max;
+    }
+
+    /** While a handle is dragged: hide the toolbar and show the magnifier over the text. */
+    void onHandleDrag(Handle h, float x, float y, int phase) {
+        if (phase == Handle.PHASE_DOWN) hideToolbar();
+        mDragged = phase == Handle.PHASE_UP ? null : h;
+        mDragX = x;
+        if (android.os.Build.VERSION.SDK_INT < 29) return;
+        if (phase == Handle.PHASE_UP) {
+            if (mMagnifier != null) Magnifier29.dismiss(mMagnifier);
+            mMagnifier = null;   // rebuilt next drag, in case the density changed
+            return;
+        }
+        if (mMagnifier == null) mMagnifier = Magnifier29.create(this);
+        showMagnifier();
+    }
+
+    private Handle mDragged;
+    private float mDragX;
+
+    /** Follow the finger, but stay within half a line of the caret (where the app snapped the
+     *  handle), so the magnifier shows text rather than the empty space past the end of a line.
+     *  Centred on the text line, just above the tip. This view covers the window at (0, 0), so
+     *  window coordinates are view coordinates. */
+    private void showMagnifier() {
+        if (mMagnifier == null || mDragged == null) return;
+        float half = mLineHeight / 2f;
+        float tipX = mDragged.tipX();
+        float x = Math.max(tipX - half, Math.min(mDragX, tipX + half));
+        Magnifier29.show(mMagnifier, x, mDragged.tipY() - half);
+    }
+
+    /** Only loaded on API 29+. NativeActivity draws into the window's surface, which a magnifier
+     *  of this (window-covering) view can copy. */
+    private static final class Magnifier29 {
+        static Object create(View v) {
+            return new android.widget.Magnifier.Builder(v).build();
+        }
+
+        static void show(Object m, float x, float y) {
+            ((android.widget.Magnifier) m).show(x, y);
+        }
+
+        static void dismiss(Object m) {
+            ((android.widget.Magnifier) m).dismiss();
+        }
+    }
 
     // ---- Floating toolbar (Cut / Copy / Paste / Select all) ----
 
@@ -136,6 +241,10 @@ final class InputView extends View {
                 int[] loc = new int[2];
                 getLocationInWindow(loc);
                 out.set(mToolbarRect);
+                // Include the handles hanging below the text, as Android's text fields do: the
+                // toolbar is placed above this rect (or below it when there's no room), never
+                // over the handles, so they stay grabbable.
+                out.bottom += visibleHandleHeight();
                 out.offset(-loc[0], -loc[1]);
             }
         }, ActionMode.TYPE_FLOATING);

@@ -1,134 +1,149 @@
 --------- beginning of main
-11-14 13:15:27.189 D/oxydemo ( 9420): android_activity::activity_impl::glue: Start: 0x7b0e9989c9f0
-11-14 13:15:27.190 I/oxydemo ( 9420): oxydroid::android: oxydroid: loaded 25972 bytes of dex
-11-14 13:15:27.191 I/oxydemo ( 9420): oxydroid_demo: oxytest: starting scripted test
-11-14 13:15:27.191 D/oxydemo ( 9420): eframe: Using the glow renderer
-11-14 13:15:27.208 D/oxydemo ( 9420): android_activity::activity_impl::glue: Resume: 0x7b0e9989c9f0
-11-14 13:15:27.223 D/oxydemo ( 9420): android_activity::activity_impl::glue: InputQueueCreated: 0x7b0e9989c9f0 -- 0x7b0e7986a5c0
-11-14 13:15:27.263 D/oxydemo ( 9420): android_activity::activity_impl::glue: NativeWindowCreated: 0x7b0e9989c9f0 -- 0x7b0d39862ee0
-11-14 13:15:27.263 D/oxydemo ( 9420): eframe::native::glow_integration: Event::Resumed
-11-14 13:15:27.264 D/oxydemo ( 9420): android_activity::activity_impl::glue: NativeWindowResized: 0x7b0e9989c9f0 -- 0x7b0d39862ee0
-11-14 13:15:27.269 D/oxydemo ( 9420): eframe::native::glow_integration: trying to create glutin Display with config: ConfigTemplateBuilder { template: ConfigTemplate { color_buffer_type: Rgb { r_size: 8, g_size: 8, b_size: 8 }, alpha_size: 8, depth_size: 0, stencil_size: 0, num_samples: None, min_swap_interval: None, max_swap_interval: None, config_surface_types: ConfigSurfaceTypes(WINDOW), api: None, transparency: false, single_buffering: false, stereoscopy: None, float_pixels: false, max_pbuffer_width: None, hardware_accelerated: None, max_pbuffer_height: None, native_window: None } }
-11-14 13:15:27.269 D/oxydemo ( 9420): android_activity::activity_impl::glue: ContentRectChanged: 0x7b0e9989c9f0 -- 0x7ffef51cbcc8
-11-14 13:15:27.272 D/oxydemo ( 9420): android_activity::activity_impl::glue: NativeWindowRedrawNeeded: 0x7b0e9989c9f0 -- 0x7b0d39862ee0
-11-14 13:15:27.279 D/oxydemo ( 9420): eframe::native::glow_integration: using the first config from config picker closure. config: Egl(Config { inner: Config { raw: EglConfig(0x5), display: Legacy(0x7b0ce453a020) } })
-11-14 13:15:27.279 D/oxydemo ( 9420): eframe::native::glow_integration: successfully created GL Display with version: EGL 1.4 and supported features: DisplayFeatures(SWAP_CONTROL | CREATE_ES_CONTEXT | MULTISAMPLING_PIXEL_FORMATS)
-11-14 13:15:27.280 D/oxydemo ( 9420): eframe::native::glow_integration: creating gl context using raw window handle: Some(AndroidNdk(AndroidNdkWindowHandle { a_native_window: 0x7b0d39862ee0 }))
-11-14 13:15:27.286 D/oxydemo ( 9420): eframe::native::glow_integration: Initializing egui_winit for viewport "FFFF"
-11-14 13:15:27.286 D/oxydemo ( 9420): eframe::native::glow_integration: Creating a gl_surface for viewport "FFFF"
-11-14 13:15:27.302 D/oxydemo ( 9420): android_activity::activity_impl::glue: WindowFocusChanged: 0x7b0e9989c9f0 -- 1
-11-14 13:15:27.341 D/oxydemo ( 9420): egui_glow::painter: 
-11-14 13:15:27.341 D/oxydemo ( 9420): opengl version: OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
-11-14 13:15:27.341 D/oxydemo ( 9420): opengl renderer: Android Emulator OpenGL ES Translator (Google SwiftShader)
-11-14 13:15:27.341 D/oxydemo ( 9420): opengl vendor: Google (Google Inc.)
-11-14 13:15:27.341 D/oxydemo ( 9420): egui_glow::shader_version: Shader version: Es300 ("OpenGL ES GLSL ES 3.00").
-11-14 13:15:27.342 D/oxydemo ( 9420): egui_glow::painter: Shader header: "#version 300 es\n".
-11-14 13:15:27.342 D/oxydemo ( 9420): egui_glow::painter: SRGB framebuffer Support: false
-11-14 13:15:27.350 D/oxydemo ( 9420): egui_glow::vao: GL version: "OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)".
-11-14 13:15:27.462 D/oxydemo ( 9420): android_activity::activity_impl::glue: NativeWindowResized: 0x7b0e9989c9f0 -- 0x7b0d39862ee0
-11-14 13:15:27.709 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: window focused false -> true
-11-14 13:15:29.474 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 0 < 1)
-11-14 13:15:29.474 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 0 < 1)
-11-14 13:15:30.465 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS focus opens a keyboard session: focused=true
-11-14 13:15:30.475 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "" -> "hé": replace 0..0 with "hé", caret (3,3), comp Some(0..3)
-11-14 13:15:31.476 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS compose (é): "hé" (expected "hé")
-11-14 13:15:31.476 I/oxydemo ( 9420): oxydroid_demo::autotest: oxytest: shot 02-composing-underlined
-11-14 13:15:33.986 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "hé" -> "héllo": replace 3..3 with "llo", caret (6,6), comp None
-11-14 13:15:34.987 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS commit replaces the composing word: "héllo" (expected "héllo")
-11-14 13:15:34.997 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "héllo" -> "héllo عربي 😀": replace 6..6 with " عربي 😀", caret (20,20), comp None
-11-14 13:15:35.998 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS Arabic + emoji: "héllo عربي 😀" (expected "héllo عربي 😀")
-11-14 13:15:35.998 I/oxydemo ( 9420): oxydroid_demo::autotest: oxytest: shot 05-arabic-emoji
-11-14 13:15:38.508 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "héllo عربي 😀" -> "héllo عربي ": replace 16..20 with "", caret (16,16), comp None
-11-14 13:15:39.510 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS delete one code point (emoji = 2 UTF-16 units): "héllo عربي " (expected "héllo عربي ")
-11-14 13:15:39.524 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: show_toolbar over [[16.0 89.4] - [44.6 104.2]] (points) x2.625
-11-14 13:15:40.610 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS keyboard selection reaches egui: Some((0, 5))
-11-14 13:15:40.610 I/oxydemo ( 9420): oxydroid_demo::autotest: oxytest: shot 08-selection-handles-toolbar
-11-14 13:15:43.123 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "héllo عربي " -> "HELLO عربي ": replace 0..6 with "HELLO", caret (5,5), comp None
-11-14 13:15:44.124 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS typing replaces the selection: "HELLO عربي " (expected "HELLO عربي ")
-11-14 13:15:44.135 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: show_toolbar over [[16.0 89.4] - [81.9 104.2]] (points) x2.625
-11-14 13:15:44.152 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "HELLO عربي " -> "": replace 0..15 with "", caret (0,0), comp None
-11-14 13:15:45.153 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS select all + cut: "" (expected "")
-11-14 13:15:45.166 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "" -> "HELLO عربي ": replace 0..0 with "HELLO عربي ", caret (15,15), comp None
-11-14 13:15:46.167 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS paste (system clipboard): "HELLO عربي " (expected "HELLO عربي ")
-11-14 13:15:46.169 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: resync text "HELLO عربي " -> "app wrote" (9,9)
-11-14 13:15:47.278 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "app wrote" -> "app wrote!": replace 9..9 with "!", caret (10,10), comp None
-11-14 13:15:48.279 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS app write reached the keyboard's mirror: "app wrote!" (expected "app wrote!")
-11-14 13:15:48.288 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "app wrote!" -> "app wrote": replace 9..10 with "", caret (9,9), comp None
-11-14 13:15:49.289 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS DEL key event: "app wrote" (expected "app wrote")
-11-14 13:15:49.389 I/oxydemo ( 9420): oxydroid_demo: latency: extracted=app wrote sel=9..9
-11-14 13:15:50.289 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS getExtractedText returns the text and selection: Some("app wrote sel=9..9")
-11-14 13:15:50.407 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 2 < 3)
-11-14 13:15:50.407 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 2 < 3)
-11-14 13:15:51.374 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "" -> "s3cret": replace 0..0 with "s3cret", caret (6,6), comp None
-11-14 13:15:52.375 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS password field gets text: 6 chars
-11-14 13:15:52.375 I/oxydemo ( 9420): oxydroid_demo::autotest: oxytest: shot 17-password
-11-14 13:15:54.887 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 3 < 4)
-11-14 13:15:54.887 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 3 < 4)
-11-14 13:15:54.887 D/oxydemo ( 9420): oxydroid::egui: oxydroid-egui: snapshot "s3cret" -> "": replace 0..6 with "", caret (0,0), comp None
-11-14 13:15:54.888 I/oxydemo ( 9420): oxydroid_demo: race test: PASS (stale dropped: 2, RACE leaked: false, echo received: true)
-11-14 13:15:55.903 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.904 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.905 I/oxydemo ( 9420): oxydroid_demo: latency: 1000 chars: 88 us per snapshot
-11-14 13:15:55.905 I/oxydemo ( 9420): oxydroid_demo: latency: 10000 chars: 108 us per snapshot
-11-14 13:15:55.922 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.923 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.946 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.946 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.946 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.946 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.946 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.946 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.946 D/oxydemo ( 9420): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
-11-14 13:15:55.947 I/oxydemo ( 9420): oxydroid_demo: latency: 100000 chars: 1805 us per snapshot
-11-14 13:15:56.989 I/oxydemo ( 9420): oxydroid_demo: oxytest: PASS race test (Q1): see race line
-11-14 13:15:56.989 I/oxydemo ( 9420): oxydroid_demo: oxytest: DONE passed=14 failed=0
-11-14 13:15:56.989 I/oxydemo ( 9420): oxydroid_demo::autotest: oxytest: shot 99-results
+11-14 13:39:32.546 D/oxydemo (12554): android_activity::activity_impl::glue: Start: 0x7b0e99896430
+11-14 13:39:32.561 I/oxydemo (12554): oxydroid::android: oxydroid: loaded 32372 bytes of dex
+11-14 13:39:32.562 I/oxydemo (12554): oxydroid_demo: oxytest: starting scripted test
+11-14 13:39:32.562 D/oxydemo (12554): eframe: Using the glow renderer
+11-14 13:39:32.607 D/oxydemo (12554): android_activity::activity_impl::glue: Resume: 0x7b0e99896430
+11-14 13:39:32.644 D/oxydemo (12554): android_activity::activity_impl::glue: InputQueueCreated: 0x7b0e99896430 -- 0x7b0e7986af00
+11-14 13:39:32.688 D/oxydemo (12554): android_activity::activity_impl::glue: NativeWindowCreated: 0x7b0e99896430 -- 0x7b0d39864f10
+11-14 13:39:32.690 D/oxydemo (12554): eframe::native::glow_integration: Event::Resumed
+11-14 13:39:32.691 D/oxydemo (12554): android_activity::activity_impl::glue: NativeWindowResized: 0x7b0e99896430 -- 0x7b0d39864f10
+11-14 13:39:32.702 D/oxydemo (12554): eframe::native::glow_integration: trying to create glutin Display with config: ConfigTemplateBuilder { template: ConfigTemplate { color_buffer_type: Rgb { r_size: 8, g_size: 8, b_size: 8 }, alpha_size: 8, depth_size: 0, stencil_size: 0, num_samples: None, min_swap_interval: None, max_swap_interval: None, config_surface_types: ConfigSurfaceTypes(WINDOW), api: None, transparency: false, single_buffering: false, stereoscopy: None, float_pixels: false, max_pbuffer_width: None, hardware_accelerated: None, max_pbuffer_height: None, native_window: None } }
+11-14 13:39:32.716 D/oxydemo (12554): android_activity::activity_impl::glue: ContentRectChanged: 0x7b0e99896430 -- 0x7ffef51cb7c8
+11-14 13:39:32.719 D/oxydemo (12554): android_activity::activity_impl::glue: NativeWindowRedrawNeeded: 0x7b0e99896430 -- 0x7b0d39864f10
+11-14 13:39:32.722 D/oxydemo (12554): eframe::native::glow_integration: using the first config from config picker closure. config: Egl(Config { inner: Config { raw: EglConfig(0x5), display: Legacy(0x7b0ce457e020) } })
+11-14 13:39:32.722 D/oxydemo (12554): eframe::native::glow_integration: successfully created GL Display with version: EGL 1.4 and supported features: DisplayFeatures(SWAP_CONTROL | CREATE_ES_CONTEXT | MULTISAMPLING_PIXEL_FORMATS)
+11-14 13:39:32.723 D/oxydemo (12554): eframe::native::glow_integration: creating gl context using raw window handle: Some(AndroidNdk(AndroidNdkWindowHandle { a_native_window: 0x7b0d39864f10 }))
+11-14 13:39:32.732 D/oxydemo (12554): eframe::native::glow_integration: Initializing egui_winit for viewport "FFFF"
+11-14 13:39:32.733 D/oxydemo (12554): eframe::native::glow_integration: Creating a gl_surface for viewport "FFFF"
+11-14 13:39:32.767 D/oxydemo (12554): android_activity::activity_impl::glue: WindowFocusChanged: 0x7b0e99896430 -- 1
+11-14 13:39:32.773 D/oxydemo (12554): egui_glow::painter: 
+11-14 13:39:32.773 D/oxydemo (12554): opengl version: OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
+11-14 13:39:32.773 D/oxydemo (12554): opengl renderer: Android Emulator OpenGL ES Translator (Google SwiftShader)
+11-14 13:39:32.773 D/oxydemo (12554): opengl vendor: Google (Google Inc.)
+11-14 13:39:32.776 D/oxydemo (12554): egui_glow::shader_version: Shader version: Es300 ("OpenGL ES GLSL ES 3.00").
+11-14 13:39:32.777 D/oxydemo (12554): egui_glow::painter: Shader header: "#version 300 es\n".
+11-14 13:39:32.777 D/oxydemo (12554): egui_glow::painter: SRGB framebuffer Support: false
+11-14 13:39:32.787 D/oxydemo (12554): egui_glow::vao: GL version: "OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)".
+11-14 13:39:32.861 D/oxydemo (12554): android_activity::activity_impl::glue: NativeWindowResized: 0x7b0e99896430 -- 0x7b0d39864f10
+11-14 13:39:33.134 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: window focused false -> true
+11-14 13:39:34.806 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 0 < 1)
+11-14 13:39:34.806 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 0 < 1)
+11-14 13:39:35.895 I/oxydemo (12554): oxydroid_demo: oxytest: PASS focus opens a keyboard session: focused=true
+11-14 13:39:35.907 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "" -> "hé": replace 0..0 with "hé", caret (3,3), comp None
+11-14 13:39:36.909 I/oxydemo (12554): oxydroid_demo: oxytest: PASS compose (é): "hé" (expected "hé")
+11-14 13:39:36.910 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: shot 02-composing-underlined
+11-14 13:39:39.520 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "hé" -> "héllo": replace 3..3 with "llo", caret (6,6), comp None
+11-14 13:39:40.521 I/oxydemo (12554): oxydroid_demo: oxytest: PASS commit replaces the composing word: "héllo" (expected "héllo")
+11-14 13:39:40.533 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "héllo" -> "héllo عربي 😀": replace 6..6 with " عربي 😀", caret (20,20), comp None
+11-14 13:39:41.533 I/oxydemo (12554): oxydroid_demo: oxytest: PASS Arabic + emoji: "héllo عربي 😀" (expected "héllo عربي 😀")
+11-14 13:39:41.534 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: shot 05-arabic-emoji
+11-14 13:39:44.046 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "héllo عربي 😀" -> "héllo عربي ": replace 16..20 with "", caret (16,16), comp None
+11-14 13:39:45.047 I/oxydemo (12554): oxydroid_demo: oxytest: PASS delete one code point (emoji = 2 UTF-16 units): "héllo عربي " (expected "héllo عربي ")
+11-14 13:39:45.061 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: show_toolbar over [[16.0 89.4] - [44.6 104.2]] (points) x2.625
+11-14 13:39:46.148 I/oxydemo (12554): oxydroid_demo: oxytest: PASS keyboard selection reaches egui: Some((0, 5))
+11-14 13:39:46.148 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: shot 08-selection-handles-toolbar
+11-14 13:39:48.663 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "héllo عربي " -> "HELLO عربي ": replace 0..6 with "HELLO", caret (5,5), comp None
+11-14 13:39:49.664 I/oxydemo (12554): oxydroid_demo: oxytest: PASS typing replaces the selection: "HELLO عربي " (expected "HELLO عربي ")
+11-14 13:39:49.674 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "HELLO عربي " -> "": replace 0..15 with "", caret (0,0), comp None
+11-14 13:39:50.675 I/oxydemo (12554): oxydroid_demo: oxytest: PASS select all + cut: "" (expected "")
+11-14 13:39:50.687 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "" -> "HELLO عربي ": replace 0..0 with "HELLO عربي ", caret (15,15), comp None
+11-14 13:39:51.688 I/oxydemo (12554): oxydroid_demo: oxytest: PASS paste (system clipboard): "HELLO عربي " (expected "HELLO عربي ")
+11-14 13:39:51.689 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: resync text "HELLO عربي " -> "app wrote" (9,9)
+11-14 13:39:52.702 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "app wrote" -> "app wrote!": replace 9..9 with "!", caret (10,10), comp None
+11-14 13:39:53.703 I/oxydemo (12554): oxydroid_demo: oxytest: PASS app write reached the keyboard's mirror: "app wrote!" (expected "app wrote!")
+11-14 13:39:53.714 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "app wrote!" -> "app wrote": replace 9..10 with "", caret (9,9), comp None
+11-14 13:39:54.715 I/oxydemo (12554): oxydroid_demo: oxytest: PASS DEL key event: "app wrote" (expected "app wrote")
+11-14 13:39:54.816 I/oxydemo (12554): oxydroid_demo: latency: extracted=app wrote sel=9..9
+11-14 13:39:55.816 I/oxydemo (12554): oxydroid_demo: oxytest: PASS getExtractedText returns the text and selection: Some("app wrote sel=9..9")
+11-14 13:39:55.927 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 2 < 3)
+11-14 13:39:55.927 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 2 < 3)
+11-14 13:39:56.909 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "" -> "s3cret": replace 0..0 with "s3cret", caret (6,6), comp None
+11-14 13:39:57.911 I/oxydemo (12554): oxydroid_demo: oxytest: PASS password field gets text: 6 chars
+11-14 13:39:57.911 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: shot 17-password
+11-14 13:40:00.519 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 3 < 4)
+11-14 13:40:00.519 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 3 < 4)
+11-14 13:40:00.519 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: snapshot "s3cret" -> "": replace 0..6 with "", caret (0,0), comp None
+11-14 13:40:00.520 I/oxydemo (12554): oxydroid_demo: race test: PASS (stale dropped: 2, RACE leaked: false, echo received: true)
+11-14 13:40:01.533 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.534 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.535 I/oxydemo (12554): oxydroid_demo: latency: 1000 chars: 76 us per snapshot
+11-14 13:40:01.535 I/oxydemo (12554): oxydroid_demo: latency: 10000 chars: 100 us per snapshot
+11-14 13:40:01.555 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.556 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.571 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.587 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.588 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 4 < 5)
+11-14 13:40:01.589 I/oxydemo (12554): oxydroid_demo: latency: 100000 chars: 2269 us per snapshot
+11-14 13:40:03.594 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: input#1 keyevent KEYCODE_BACK
+11-14 13:40:03.829 I/oxydemo (12554): oxydroid_demo: back → signed out
+11-14 13:40:04.668 I/oxydemo (12554): oxydroid_demo: oxytest: PASS Back reaches the app (OnBackInvokedCallback): API 36
+11-14 13:40:05.686 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 5 < 6)
+11-14 13:40:05.686 D/oxydemo (12554): oxydroid::android: oxydroid: dropped stale snapshot (seq 5 < 6)
+11-14 13:40:06.707 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: show_toolbar over [[16.0 89.4] - [37.7 104.2]] (points) x2.625
+11-14 13:40:07.716 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: input#2 motionevent DOWN 114 304
+11-14 13:40:08.816 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: input#3 motionevent MOVE 414 304
+11-14 13:40:08.898 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: resync caret (0,3) -> (0,9) in "app wrote"
+11-14 13:40:09.817 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: shot 28-handle-drag-magnifier
+11-14 13:40:12.318 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: input#4 motionevent UP 414 304
+11-14 13:40:12.408 D/oxydemo (12554): oxydroid::egui: oxydroid-egui: show_toolbar over [[16.0 89.4] - [75.4 104.2]] (points) x2.625
+11-14 13:40:13.416 I/oxydemo (12554): oxydroid_demo: oxytest: PASS dragging the native end handle extends the selection: Some((0, 9))
+11-14 13:40:13.416 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: shot 30-after-handle-drag
+11-14 13:40:15.919 I/oxydemo (12554): oxydroid_demo: oxytest: PASS race test (Q1): see race line
+11-14 13:40:15.920 I/oxydemo (12554): oxydroid_demo: oxytest: PASS keyboard slide arrives frame by frame: 38 distinct heights, max Some(883) px
+11-14 13:40:15.920 I/oxydemo (12554): oxydroid_demo: oxytest: PASS theme info: accent color + animations: Some(("#FF475D92", true))
+11-14 13:40:15.920 I/oxydemo (12554): oxydroid_demo: oxytest: DONE passed=18 failed=0
+11-14 13:40:15.920 I/oxydemo (12554): oxydroid_demo::autotest: oxytest: shot 99-results

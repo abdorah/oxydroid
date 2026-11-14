@@ -50,7 +50,7 @@ for _ in $(seq 400); do
   while IFS= read -r cue; do
     n=$(sed -E 's/^input#([0-9]+) .*/\1/' <<<"$cue")
     args=$(sed -E 's/^input#[0-9]+ //' <<<"$cue")
-    if [[ -z "${done_input[$n]:-}" && "$args" =~ ^(keyevent|tap|swipe)(\ [A-Z0-9_]+)+$ ]]; then
+    if [[ -z "${done_input[$n]:-}" && "$args" =~ ^(keyevent|tap|swipe|motionevent)(\ [A-Z0-9_]+)+$ ]]; then
       done_input[$n]=1
       # shellcheck disable=SC2086  # deliberate word splitting of validated tokens
       "$A" -s "$DEV" shell input $args

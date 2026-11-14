@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Native selection handles: `set_handles(Handles, line_height)` shows the platform's own caret and
+  selection handles (theme drawables, in popup windows above the native surface);
+  `Event::Handle { which, x, y, phase }` reports drags. Magnifier (Android 10+) while dragging,
+  kept on the text. `set_handle_color`. The egui adapter uses them instead of drawing its own.
+- The floating toolbar's target rect includes the handles, so it never covers them.
+- Autotest drives the handles with real touches (`input motionevent`): 18/18 on Android 16.
+
 - Insets follow the keyboard's slide animation frame by frame (`WindowInsetsAnimation`, API 30+):
   39 intermediate heights in the emulator test instead of one jump.
 - `Config` gains `accent_color` (ARGB; the Material You accent on Android 12+) and

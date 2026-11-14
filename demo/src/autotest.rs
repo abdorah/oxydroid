@@ -26,6 +26,8 @@ pub(crate) struct AutoTest {
     passed: u32,
     failed: u32,
     done: bool,
+    /// Where the end-handle drag started (screen px), for the handle test.
+    drag: Option<(i32, i32)>,
 }
 
 impl AutoTest {
@@ -36,6 +38,7 @@ impl AutoTest {
             passed: 0,
             failed: 0,
             done: false,
+            drag: None,
         }
     }
 }
@@ -253,6 +256,61 @@ impl Demo {
                 }
                 // The demo's Back handler already gave Back back to the system: don't press it again.
                 Then::Act
+            }
+            24 => {
+                // Native handles: refocus the field and let the keyboard select "app".
+                if let Some(id) = self.user_id {
+                    ctx.memory_mut(|m| m.request_focus(id));
+                }
+                Then::Act
+            }
+            25 => {
+                kb("select", "", 0, 3);
+                Then::Act
+            }
+            26 => {
+                // Grab the end handle by its body: it hangs below its tip, and its tip sits at a
+                // quarter of its width, so aim a little right of and below the tip. Real touches.
+                if let oxydroid::Handles::Selection { end: (x, y), .. } = self.ime.handles() {
+                    let (gx, gy) = (x as i32 + 15, y as i32 + 30);
+                    self.autotest.as_mut().unwrap().drag = Some((gx, gy));
+                    input(2, &format!("motionevent DOWN {gx} {gy}"));
+                } else {
+                    let h = self.ime.handles();
+                    self.check(
+                        "selection shows two native handles",
+                        false,
+                        format!("{h:?}"),
+                    );
+                }
+                Then::Act
+            }
+            27 => {
+                if let Some((gx, gy)) = self.autotest.as_ref().unwrap().drag {
+                    input(3, &format!("motionevent MOVE {} {gy}", gx + 300));
+                }
+                Then::Act
+            }
+            28 => Then::Shot("28-handle-drag-magnifier"),
+            29 => {
+                if let Some((gx, gy)) = self.autotest.as_ref().unwrap().drag {
+                    input(4, &format!("motionevent UP {} {gy}", gx + 300));
+                }
+                Then::Act
+            }
+            30 => {
+                let range = self
+                    .user_id
+                    .and_then(|id| TextEditState::load(ctx, id))
+                    .and_then(|s| s.cursor.char_range())
+                    .map(|r| (r.secondary.index.0, r.primary.index.0));
+                let ok = range.is_some_and(|(a, h)| a == 0 && h > 3);
+                self.check(
+                    "dragging the native end handle extends the selection",
+                    ok,
+                    format!("{range:?}"),
+                );
+                Then::Shot("30-after-handle-drag")
             }
             _ => {
                 let race_pass = self

@@ -28,10 +28,11 @@
 //! - Arrow keys are forwarded to egui, which moves the caret with its own (bidi-aware) layout.
 //! - Composing text is applied as plain text: no underline yet.
 
-use crate::{Caret, Config, EnterAction, Event, FieldKind, Insets, text};
+use crate::{
+    Caret, Config, EnterAction, Event, FieldKind, HandleKind, HandlePhase, Handles, Insets, text,
+};
 use ::egui::{
-    Context, Id, Key, LayerId, Modifiers, Order, Pos2, RawInput, Rect, Sense, Stroke, TextEdit, Ui,
-    Vec2,
+    Context, Id, Key, Modifiers, Pos2, RawInput, Stroke, TextEdit, Ui,
     text::CCursor,
     text_edit::{TextEditOutput, TextEditState},
     text_selection::CCursorRange,
@@ -57,6 +58,13 @@ pub struct Ime {
     pending_cursor: Option<(Id, usize, usize)>,
     toolbar_shown: bool,
     caret: Option<Caret>,
+    /// Native handles last sent, the one being dragged, and whether the caret handle is wanted
+    /// (after a tap in the field, until the next edit), as in Android's own text fields.
+    handles: Handles,
+    handle_drag: Option<HandleKind>,
+    caret_handle: bool,
+    /// The focused field's last layout, to hit-test handle drags: (id, galley, origin, line height).
+    layout: Option<(Id, std::sync::Arc<::egui::Galley>, Pos2, f32)>,
     /// Theme last reported to the system bars.
     dark_ui: Option<bool>,
     window_focused: bool,
@@ -70,8 +78,6 @@ pub struct Ime {
     /// `Text`): drained by the app with [`Ime::take_events`].
     events: Vec<Event>,
 }
-
-const SELECTION_HANDLE_RADIUS: f32 = 9.0;
 
 impl Ime {
     /// Call once, after `oxydroid::init`, with the egui context (e.g. in eframe's app creator).
@@ -115,6 +121,9 @@ impl Ime {
                 Event::Insets(i) => self.insets = *i,
                 Event::Config(c) => self.config = Some(*c),
                 Event::Back => {}
+                Event::Handle { which, x, y, phase } => {
+                    self.drag_handle(ctx, *which, *x, *y, *phase)
+                }
             }
             self.events.push(ev);
         }
@@ -223,11 +232,101 @@ impl Ime {
         }
 
         self.update_caret(ui, &out, text, head);
-        if kind != FieldKind::Password {
-            self.selection_handles(ui, &mut out);
+        if out.response.clicked() {
+            self.caret_handle = true;
         }
+        let line_h = out.galley.pos_from_cursor(CCursor::new(0)).height();
+        self.layout = Some((id, out.galley.clone(), out.galley_pos, line_h));
+        self.update_handles(ui, &out, text, anchor, head, kind);
         self.update_toolbar(ui, &out, text, anchor, head);
         out
+    }
+
+    /// The native handles last sent (window pixels): what a test needs to drag them.
+    pub fn handles(&self) -> Handles {
+        self.handles
+    }
+
+    /// Show the platform's selection handles: two under a selection, one under a caret after a
+    /// tap. Only sent when they move.
+    fn update_handles(
+        &mut self,
+        ui: &Ui,
+        out: &TextEditOutput,
+        text: &str,
+        anchor: usize,
+        head: usize,
+        kind: FieldKind,
+    ) {
+        let ppp = ui.ctx().pixels_per_point();
+        let tip = |byte: usize| {
+            let r = out
+                .galley
+                .pos_from_cursor(CCursor::new(text::byte_to_char(text, byte)))
+                .translate(out.galley_pos.to_vec2());
+            ((r.left() * ppp).round(), (r.bottom() * ppp).round())
+        };
+        let handles = if kind == FieldKind::Password {
+            Handles::None
+        } else if anchor != head {
+            Handles::Selection {
+                start: tip(anchor.min(head)),
+                end: tip(anchor.max(head)),
+            }
+        } else if self.caret_handle {
+            let (x, y) = tip(head);
+            Handles::Caret { x, y }
+        } else {
+            Handles::None
+        };
+        if handles != self.handles {
+            self.handles = handles;
+            let line_h = out.galley.pos_from_cursor(CCursor::new(0)).height() * ppp;
+            crate::set_handles(handles, line_h);
+        }
+    }
+
+    /// A native handle moved: hit-test the field's layout just above its tip and move that end.
+    fn drag_handle(
+        &mut self,
+        ctx: &Context,
+        which: HandleKind,
+        x: f32,
+        y: f32,
+        phase: HandlePhase,
+    ) {
+        self.handle_drag = match phase {
+            HandlePhase::Up => None,
+            _ => Some(which),
+        };
+        if self.toolbar_shown && phase == HandlePhase::Down {
+            self.toolbar_shown = false; // Java hid it; show it again once the handle is released
+        }
+        let Some((id, galley, origin, line_h)) = self.layout.clone() else {
+            return;
+        };
+        let ppp = ctx.pixels_per_point();
+        let aim = Pos2::new(x / ppp, y / ppp - line_h / 2.0);
+        let moved = galley.cursor_from_pos(aim - origin);
+        let mut st = TextEditState::load(ctx, id).unwrap_or_default();
+        let cur = st
+            .cursor
+            .char_range()
+            .unwrap_or_else(|| CCursorRange::one(moved));
+        let (lo, hi) = if cur.secondary.index <= cur.primary.index {
+            (cur.secondary, cur.primary)
+        } else {
+            (cur.primary, cur.secondary)
+        };
+        // The dragged end moves (primary); the other stays put (secondary), as in Android.
+        let range = match which {
+            HandleKind::Caret => CCursorRange::one(moved),
+            HandleKind::Start => CCursorRange::two(hi, moved),
+            HandleKind::End => CCursorRange::two(lo, moved),
+        };
+        st.cursor.set_char_range(Some(range));
+        st.store(ctx, id);
+        ctx.request_repaint();
     }
 
     /// Report the caret's position so keyboards can place their own UI next to it (Gboard's
@@ -272,6 +371,13 @@ impl Ime {
     fn unfocus(&mut self) {
         self.focused = None;
         self.pending_cursor = None;
+        self.caret_handle = false;
+        self.handle_drag = None;
+        self.layout = None;
+        if self.handles != Handles::None {
+            self.handles = Handles::None;
+            crate::set_handles(Handles::None, 0.0);
+        }
         if self.caret.take().is_some() {
             crate::set_caret(None);
         }
@@ -288,6 +394,7 @@ impl Ime {
         let Some(f) = &mut self.focused else { return };
         f.composing = s.composing.clone();
         if s.text != f.text {
+            self.caret_handle = false;
             let (start, old_end, new_end) = text::diff(&f.text, &s.text);
             let inserted = &s.text[start..new_end];
             log::debug!(
@@ -324,48 +431,6 @@ impl Ime {
         f.head = s.head;
     }
 
-    /// D4: two draggable handles under the selection ends (touch has no Shift-click).
-    /// Byte offsets are recomputed by `text_edit` on the next frame, which then tells the keyboard.
-    fn selection_handles(&mut self, ui: &mut Ui, out: &mut TextEditOutput) {
-        let Some(range) = out.cursor_range else {
-            return;
-        };
-        if range.is_empty() {
-            return;
-        }
-        let ctx = ui.ctx().clone();
-        let id = out.response.id;
-        let painter =
-            ctx.layer_painter(LayerId::new(Order::Foreground, id.with("oxydroid-handles")));
-        let color = ui.visuals().selection.stroke.color;
-        let ends = [range.secondary, range.primary];
-        for (i, end) in ends.iter().enumerate() {
-            let caret = out
-                .galley
-                .pos_from_cursor(*end)
-                .translate(out.galley_pos.to_vec2());
-            let center = caret.center_bottom() + Vec2::new(0.0, SELECTION_HANDLE_RADIUS);
-            painter.line_segment([caret.center_bottom(), center], Stroke::new(2.0, color));
-            painter.circle_filled(center, SELECTION_HANDLE_RADIUS, color);
-            // Generous touch target, registered after the TextEdit so it wins the hit test.
-            let touch = Rect::from_center_size(center, Vec2::splat(SELECTION_HANDLE_RADIUS * 4.0));
-            let r = ui.interact(touch, id.with(("oxydroid-handle", i)), Sense::drag());
-            if r.dragged()
-                && let Some(p) = r.interact_pointer_pos()
-            {
-                // The finger sits on the knob below the text: aim at the text row above it.
-                let aim: Pos2 = p - Vec2::new(0.0, SELECTION_HANDLE_RADIUS + caret.height() / 2.0);
-                let moved = out.galley.cursor_from_pos(aim - out.galley_pos);
-                let other = ends[1 - i];
-                // Dragging the start handle makes it the moving end; that's fine: head = moved.
-                let new_range = CCursorRange::two(other, moved);
-                out.state.cursor.set_char_range(Some(new_range));
-                out.state.clone().store(&ctx, id);
-                out.cursor_range = Some(new_range);
-            }
-        }
-    }
-
     /// The floating Cut/Copy/Paste toolbar over a non-empty selection, once the finger is up.
     fn update_toolbar(
         &mut self,
@@ -376,7 +441,8 @@ impl Ime {
         head: usize,
     ) {
         let has_selection = anchor != head;
-        let finger_down = ui.input(|i| i.pointer.any_down());
+        // A native handle being dragged counts as a finger down: its touches don't reach egui.
+        let finger_down = ui.input(|i| i.pointer.any_down()) || self.handle_drag.is_some();
         if has_selection && !finger_down && !self.toolbar_shown {
             let (a, b) = (anchor.min(head), anchor.max(head));
             let p = |byte| {

@@ -46,6 +46,7 @@ public final class Platform {
     static native void nativeOnConfig(boolean night, float fontScale, int densityDpi,
                                       int accentColor, boolean animations);
     static native void nativeOnDebug(String message);
+    static native void nativeOnHandle(int handle, float x, float y, int phase);
 
     private Platform() {}
 
@@ -124,6 +125,21 @@ public final class Platform {
     public static void setArrowsToApp(final boolean toApp) {
         post(new Runnable() {
             @Override public void run() { if (sInput != null) sInput.mArrowsToApp = toApp; }
+        });
+    }
+
+    /** Native selection handles; see InputView.setHandles. */
+    public static void setHandles(final int mode, final int ax, final int ay, final int bx,
+                                  final int by, final int lineHeight) {
+        post(new Runnable() {
+            @Override public void run() { if (sInput != null) sInput.setHandles(mode, ax, ay, bx, by, lineHeight); }
+        });
+    }
+
+    /** Tint for the handles (ARGB); 0 keeps the platform's color. */
+    public static void setHandleColor(final int argb) {
+        post(new Runnable() {
+            @Override public void run() { if (sInput != null) sInput.setHandleColor(argb); }
         });
     }
 
