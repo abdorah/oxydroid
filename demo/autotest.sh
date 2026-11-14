@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
 # Run the demo's scripted on-device test and write a report with screenshots.
-# Usage: demo/autotest.sh [ip:connect_port] [report-dir]
-#   No device given: uses the single connected device (adb connect <ip:port> first). The script itself
-#   launches the demo with --es oxytest 1; don't pass that.
-# Needs: the phone UNLOCKED (we never touch the lock screen). Builds nothing: build the demo first.
-# Side effect: the test's "cut" step puts text on the phone's clipboard.
+# Usage: demo/autotest.sh [serial] [report-dir]
+#   serial: emulator-5554, or ip:port for a phone over Wi-Fi. None given: the single connected
+#   device. The script itself launches the demo with --es oxytest 1; don't pass that.
+# Needs: the device UNLOCKED (we never touch a phone's lock screen). Builds nothing: build first.
+# Side effect: the test's "cut" step puts text on the device's clipboard.
 set -euo pipefail
 A="$HOME/Android/Sdk/platform-tools/adb"
 DEV="${1:-$("$A" devices | awk 'NR > 1 && $2 == "device" {print $1}' | head -1)}"
-if [[ -z "$DEV" || "$DEV" == -* || "$DEV" != *:* && "$DEV" != *[0-9A-Z]* ]]; then
-  echo "usage: $0 [ip:connect_port] [report-dir]   (no device connected? adb connect <ip:port> first)"; exit 2
+if [[ -z "$DEV" || "$DEV" == -* ]]; then
+  echo "usage: $0 [serial] [report-dir]   (nothing connected? start the emulator or adb connect <ip:port>)"; exit 2
 fi
+[[ "$DEV" == *:* ]] && "$A" connect "$DEV" >/dev/null
 echo "device: $DEV"
+model=$("$A" -s "$DEV" shell getprop ro.product.model | tr -d '\r')
+api=$("$A" -s "$DEV" shell getprop ro.build.version.sdk | tr -d '\r')
+slug=$(tr 'A-Z ' 'a-z-' <<<"$model" | tr -cd 'a-z0-9-')-api$api   # e.g. sm-a205f-api30
 repo="$(cd "$(dirname "$0")/.." && pwd)"   # this repo
-OUT="${2:-$repo/docs/test-reports/$(date +%F)-a20}"
+OUT="${2:-$repo/docs/test-reports/$(date +%F)-$slug}"
 APK="$repo/demo/target/debug/apk/oxydroid-demo.apk"
 PKG=dev.kotbyte.oxydroid.demo
 mkdir -p "$OUT"
 
-"$A" connect "$DEV" >/dev/null
 if "$A" -s "$DEV" shell dumpsys window | grep -q "isKeyguardShowing=true"; then
-  echo "The phone is locked: unlock it and run again."; exit 3
+  if [[ "$DEV" == emulator-* ]]; then
+    "$A" -s "$DEV" shell wm dismiss-keyguard   # our own throwaway emulator: no PIN
+  else
+    echo "The phone is locked: unlock it and run again."; exit 3
+  fi
 fi
 "$A" -s "$DEV" install -r "$APK" | tail -1
 "$A" -s "$DEV" logcat -c

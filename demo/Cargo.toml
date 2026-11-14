@@ -25,7 +25,8 @@ winit = "0.30.13"
 
 [package.metadata.android]
 package = "dev.kotbyte.oxydroid.demo"
-build_targets = ["aarch64-linux-android"]
+# arm64 for phones, x86_64 for the emulator (no ARM translation needed).
+build_targets = ["aarch64-linux-android", "x86_64-linux-android"]
 
 [package.metadata.android.sdk]
 min_sdk_version = 26
