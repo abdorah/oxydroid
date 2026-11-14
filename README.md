@@ -75,6 +75,7 @@ is underlined. See [`demo/`](demo) for a sign-in form and a chat box.
 | **egui** 0.37 | `oxydroid::egui::Ime` (feature `egui`): plain `TextEdit`s | `templates/egui-app` |
 | **Bevy** 0.20 | [`oxydroid-bevy`](bevy): `OxydroidPlugin`, plain `TextInput` widgets | `templates/bevy-app` |
 | anything winit-style | `oxydroid::winit_ime::Translator`: snapshots → `Preedit` / `Commit` / `DeleteSurrounding` | |
+| **iced** 0.14 | ❌ not possible today: `iced_winit` builds its event loop without the `AndroidApp` winit needs on Android, so iced can't start there, and upstream doesn't take mobile changes. A fork would need that, plus polling oxydroid in its event loop through `Translator`. | |
 
 ```bash
 templates/new-app.sh egui my-notes   # or: bevy my-game; add --git to depend on GitHub
