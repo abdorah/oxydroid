@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `set_light_system_bars(bool)`: dark icons for a light UI under edge-to-edge (forced on Android 16,
+  where white icons vanished on light themes). The egui adapter follows the theme automatically.
+- Fixed: the floating toolbar never stayed visible with Gboard (Android 16). Keyboards' no-op calls
+  dismissed it; now only a real text change does.
+- Edge-to-edge below API 30 keeps other system UI flags.
+- Demo builds for x86_64 too; `demo/emulator.sh` runs an Android 16 emulator for the autotest.
+
 - `set_caret(Option<Caret>)` -> `CursorAnchorInfo` + `requestCursorUpdates`: the caret's screen
   position, selection and composing region. Keyboards need it for the floating cursor, handwriting
   and prediction popups. The egui adapter sends it when the caret moves.

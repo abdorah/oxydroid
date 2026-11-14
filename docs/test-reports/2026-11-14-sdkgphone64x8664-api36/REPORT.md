@@ -1,23 +1,23 @@
-# On-device test report: 2026-11-14 12:05
+# On-device test report: 2026-11-14 12:15
 
 ## Summary
 
 **14/14 checks pass** on the Android 16 emulator (API 36, x86_64, Google Play image) with **Gboard**,
 the first run outside Samsung's keyboard. New since the A20 report: `getExtractedText` returns the
-text and selection.
+text and selection; Gboard's suggestion strip works through our `InputConnection`.
 
-Found by this run (not visible on the Android 11 phone):
-- **Status bar icons are near-invisible** (white on the light UI): Android 16 forces edge-to-edge,
-  and nothing tells the system the content behind the bars is light. Needs light system-bar icons.
-- **The floating toolbar doesn't show** in `08-selection-handles-toolbar` (it does on the A20).
-  To investigate: timing vs. an API 36 change.
+The first emulator run found two Android 16 bugs, **both fixed in this report's commit**:
 
-Confirmed: typing with accents, Arabic, color emoji; selection and handles; Gboard shows its "Next"
-key for `EnterAction::Next`; password field; race test; insets keep content below the status bar
-under forced edge-to-edge.
+| Symptom | Root cause | Fix |
+|---|---|---|
+| Status bar icons near-invisible (white on the light UI) | Android 16 forces edge-to-edge; nothing told the system the UI behind the bars is light | `set_light_system_bars`; the egui adapter follows the theme |
+| Floating toolbar never visible (created, then destroyed within 50–450 ms) | Gboard answers a new selection with no-op calls (e.g. `finishComposingText()`); every keyboard call dismissed the toolbar | Only a real text change dismisses it, like `EditText` |
+
+Screenshots: `05` shows the readable dark status bar icons; `08` the Cut/Copy/Paste/Select-all toolbar
+in Android 16's style over the selection.
 
 
-Device: sdk_gphone64_x86_64, Android 16. Keyboard: `com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME`. oxydroid commit `39f0453` (+ working tree).
+Device: sdk_gphone64_x86_64, Android 16. Keyboard: `com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME`. oxydroid commit `efa49e1` (+ working tree).
 Run: `demo/autotest.sh`, which launches the demo with `--es oxytest 1`; steps in `demo/src/autotest.rs`.
 Each step calls the real `InputConnection` the way a keyboard app does, then checks the egui field.
 
@@ -38,9 +38,9 @@ latency: extracted=app wrote sel=9..9
 oxytest: PASS getExtractedText returns the text and selection: Some("app wrote sel=9..9")
 oxytest: PASS password field gets text: 6 chars
 race test: PASS (stale dropped: 2, RACE leaked: false, echo received: true)
-latency: 1000 chars: 179 us per snapshot
-latency: 10000 chars: 231 us per snapshot
-latency: 100000 chars: 3754 us per snapshot
+latency: 1000 chars: 88 us per snapshot
+latency: 10000 chars: 108 us per snapshot
+latency: 100000 chars: 1805 us per snapshot
 oxytest: PASS race test (Q1): see race line
 oxytest: DONE passed=14 failed=0
 ```

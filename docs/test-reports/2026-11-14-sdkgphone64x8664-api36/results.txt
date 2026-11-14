@@ -13,8 +13,8 @@ latency: extracted=app wrote sel=9..9
 oxytest: PASS getExtractedText returns the text and selection: Some("app wrote sel=9..9")
 oxytest: PASS password field gets text: 6 chars
 race test: PASS (stale dropped: 2, RACE leaked: false, echo received: true)
-latency: 1000 chars: 179 us per snapshot
-latency: 10000 chars: 231 us per snapshot
-latency: 100000 chars: 3754 us per snapshot
+latency: 1000 chars: 88 us per snapshot
+latency: 10000 chars: 108 us per snapshot
+latency: 100000 chars: 1805 us per snapshot
 oxytest: PASS race test (Q1): see race line
 oxytest: DONE passed=14 failed=0

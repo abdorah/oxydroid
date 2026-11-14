@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
@@ -178,11 +179,40 @@ public final class Platform {
                 } else {
                     int f = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-                    w.getDecorView().setSystemUiVisibility(on ? f : 0);
+                    // Keep the other flags (light bars) and only toggle the layout ones.
+                    View d = w.getDecorView();
+                    int v = d.getSystemUiVisibility() & ~f;
+                    d.setSystemUiVisibility(on ? v | f : v);
                 }
                 w.setStatusBarColor(on ? Color.TRANSPARENT : sStatusColor);
                 w.setNavigationBarColor(on ? Color.TRANSPARENT : sNavColor);
                 w.getDecorView().requestApplyInsets();
+            }
+        });
+    }
+
+    /** Dark icons on the status and navigation bars (for a light UI behind them) if `light`,
+     *  light icons otherwise. Edge-to-edge (forced on Android 16) puts the app behind the bars,
+     *  so without this the icons can vanish against the app's background. */
+    @SuppressWarnings("deprecation")
+    public static void setLightSystemBars(final boolean light) {
+        post(new Runnable() {
+            @Override public void run() {
+                if (sActivity == null) return;
+                Window w = sActivity.getWindow();
+                if (Build.VERSION.SDK_INT >= 30) {
+                    WindowInsetsController c = w.getInsetsController();
+                    if (c == null) return;
+                    int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                            | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                    c.setSystemBarsAppearance(light ? mask : 0, mask);
+                } else {
+                    int f = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                    if (Build.VERSION.SDK_INT >= 26) f |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                    View d = w.getDecorView();
+                    int v = d.getSystemUiVisibility();
+                    d.setSystemUiVisibility(light ? v | f : v & ~f);
+                }
             }
         });
     }

@@ -57,6 +57,8 @@ pub struct Ime {
     pending_cursor: Option<(Id, usize, usize)>,
     toolbar_shown: bool,
     caret: Option<Caret>,
+    /// Theme last reported to the system bars.
+    dark_ui: Option<bool>,
     window_focused: bool,
     /// The text Java's mirror holds, as far as we know: focusing a field with the same text
     /// then needs no keyboard restart.
@@ -253,6 +255,12 @@ impl Ime {
 
     /// Call at the end of `ui()`, after every text field.
     pub fn end_frame(&mut self, ctx: &Context) {
+        // Status bar icons must contrast with the UI behind them (edge-to-edge). Follow the theme.
+        let dark = ctx.global_style().visuals.dark_mode;
+        if self.dark_ui != Some(dark) {
+            self.dark_ui = Some(dark);
+            crate::set_light_system_bars(!dark);
+        }
         // egui-winit maps egui's IME requests to hide/show on Android: we own the keyboard instead.
         ctx.output_mut(|o| o.ime = None);
         // The focused field wasn't drawn this frame (screen changed): close the keyboard.

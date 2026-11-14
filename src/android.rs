@@ -284,6 +284,18 @@ pub fn set_edge_to_edge(on: bool) {
     call("setEdgeToEdge", "(Z)V", &[JValue::Bool(on as jboolean)]);
 }
 
+/// Dark status/navigation bar icons (for a light UI) if `light`, light icons otherwise.
+/// Needed under edge-to-edge (forced on Android 16), where the app draws behind the bars: with
+/// the wrong setting the clock and battery icons disappear into the background. The egui adapter
+/// calls this from the current theme.
+pub fn set_light_system_bars(light: bool) {
+    call(
+        "setLightSystemBars",
+        "(Z)V",
+        &[JValue::Bool(light as jboolean)],
+    );
+}
+
 /// `true`: back gestures arrive as [`Event::Back`] and the app decides (close a dialog, go up
 /// a screen). `false`: the system handles back (usually finishes the app, with the predictive
 /// animation). Android 13+; older versions deliver back as a key event through the input queue.

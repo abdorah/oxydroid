@@ -4,7 +4,8 @@
 clipboard, insets, back and dark mode. No JDK, no Gradle.**
 
 > Status: **experimental** (0.0.x). Tested on one device: Galaxy A20, Android 11, Samsung Keyboard.
-> Latest automated on-device run: [13/13 checks pass](docs/test-reports/2026-11-11-a20/REPORT.md).
+> Automated on-device runs: [Galaxy A20, Android 11, Samsung Keyboard: 13/13](docs/test-reports/2026-11-11-a20/REPORT.md) ·
+> [Android 16 emulator, Gboard: 14/14](docs/test-reports/2026-11-14-sdkgphone64x8664-api36/REPORT.md).
 
 ## Why
 
@@ -28,10 +29,11 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Keyboard Select all / Cut / Copy / Paste, cross-app clipboard | ✅ |
 | Field kinds (password, number, email, multiline) + Enter action (Done/Send/Go/…) | ✅ |
 | Floating Cut/Copy/Paste toolbar | ✅ (fixed: was invisible before 2026-11-11; screenshot in the test report) |
+| Light/dark system-bar icons (`set_light_system_bars`; egui adapter follows the theme) | ✅ Android 16 emulator |
 | Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ (status 53 px, nav 84 px, keyboard 608–678 px) |
 | Dark mode / font scale / density changes | ✅ |
 | `CursorAnchorInfo` / `requestCursorUpdates`: caret position on screen (Gboard floating cursor, handwriting) | 🧪 new, **not yet device-verified** |
-| `getExtractedText` / `updateExtractedText`: fullscreen keyboards, extracted-text monitors | 🧪 new, **not yet device-verified** |
+| `getExtractedText` / `updateExtractedText`: fullscreen keyboards, extracted-text monitors | ✅ Android 16 + Gboard |
 | Back via `OnBackInvokedCallback` (Android 13+) | ⚠️ implemented, **untested** (needs Android 13+) |
 | **egui adapter** (feature `egui`): plain `egui::TextEdit` with real keyboard input | ✅ sign-in form + chat demo |
 | Draggable selection handles (drawn by the toolkit adapter) | ✅ egui adapter |

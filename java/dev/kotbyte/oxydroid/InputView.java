@@ -44,6 +44,7 @@ final class InputView extends View {
     private float mCaretBottom;
     private boolean mCaretRtl;
     private final int[] mScreenLocation = new int[2];
+    private String mReportedText = "";   // text of the last snapshot sent to Rust
 
     InputView(Context ctx) {
         super(ctx);
@@ -271,7 +272,8 @@ final class InputView extends View {
             mConn.reportExtractedTextIfMonitoring();
             mConn.reportCursorAnchorInfoIfMonitoring();
         }
-        Platform.nativeOnState(mEditable.toString(), ss, se, cs, ce, mLastAppSeq);
+        mReportedText = mEditable.toString();
+        Platform.nativeOnState(mReportedText, ss, se, cs, ce, mLastAppSeq);
     }
 
     private final class Connection extends BaseInputConnection {
@@ -374,7 +376,10 @@ final class InputView extends View {
             return mBatch > 0;
         }
         private boolean changed(boolean result) {
-            hideToolbar();                       // typing dismisses the toolbar, like EditText
+            // Typing dismisses the toolbar, like EditText; keyboards' no-op calls must not. Gboard
+            // answers a new selection with e.g. finishComposingText(), which killed the toolbar
+            // within 50-450 ms on Android 16.
+            if (!mEditable.toString().equals(mReportedText)) hideToolbar();
             if (mBatch == 0) report();
             return result;
         }
