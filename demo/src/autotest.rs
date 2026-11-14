@@ -88,6 +88,12 @@ impl Demo {
         let kb = oxydroid::debug_keyboard;
         let then = match t.step {
             0 => {
+                // Android sends the keyboard's slide animation frame by frame only to apps that
+                // draw edge-to-edge (forced from Android 15 at target 35+). Turn it on below that,
+                // so the animation check means the same thing on every version.
+                if oxydroid::debug_api_level() < 35 {
+                    oxydroid::set_edge_to_edge(true);
+                }
                 if let Some(id) = self.user_id {
                     ctx.memory_mut(|m| m.request_focus(id)); // like a tap on the field
                 }

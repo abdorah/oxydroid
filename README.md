@@ -4,7 +4,7 @@
 clipboard, insets, back and dark mode. No JDK, no Gradle.**
 
 > Status: **experimental** (0.0.x). Tested on one device: Galaxy A20, Android 11, Samsung Keyboard.
-> Automated on-device runs: [Galaxy A20, Android 11, Samsung Keyboard: 13/13](docs/test-reports/2026-11-11-a20/REPORT.md) ·
+> Automated on-device runs: [Galaxy A20, Android 11, Samsung Keyboard: 17/17](docs/test-reports/2026-11-14-sm-a205f-api30/REPORT.md) ·
 > [Android 16 emulator, Gboard: 18/18](docs/test-reports/2026-11-14-sdkgphone64x8664-api36/REPORT.md).
 
 ## Why
@@ -30,7 +30,7 @@ oxydroid is that Java class, written once for everyone and shipped **prebuilt**.
 | Field kinds (password, number, email, multiline) + Enter action (Done/Send/Go/…) | ✅ |
 | Floating Cut/Copy/Paste toolbar | ✅ (fixed: was invisible before 2026-11-11; screenshot in the test report) |
 | Light/dark system-bar icons (`set_light_system_bars`; egui adapter follows the theme) | ✅ Android 16 emulator |
-| Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ keyboard height follows the slide animation frame by frame (API 30+) |
+| Insets (system bars, cutout, keyboard height) + opt-in edge-to-edge | ✅ the keyboard height follows its slide animation frame by frame when edge-to-edge is on (forced on Android 15+; `set_edge_to_edge(true)` before that) |
 | Dark mode / font scale / density, accent color (Material You on 12+), animations on/off | ✅ |
 | `CursorAnchorInfo` / `requestCursorUpdates`: caret position on screen (Gboard floating cursor, handwriting) | 🧪 new, **not yet device-verified** |
 | `getExtractedText` / `updateExtractedText`: fullscreen keyboards, extracted-text monitors | ✅ Android 16 + Gboard |
@@ -85,8 +85,8 @@ Bevy's `TextInput` already speaks winit's IME vocabulary, so the plugin only tra
 the keyboard when Bevy enables IME for a focused field, turns snapshots into `Ime` and
 `KeyboardInput` messages, and tells the keyboard when Bevy's caret or text changes (taps, arrow
 keys, app writes). Bevy's Parley layout moves the caret visually, right-to-left text included.
-Verified on the Android 16 emulator with Gboard: commit with accents, composing, delete, and an
-arrow key followed by typing. See [`templates/README.md`](templates/README.md).
+Verified on the Android 16 emulator with Gboard and on a Galaxy A20 (Android 11) with Samsung
+Keyboard: commit with accents, composing, delete, and an arrow key followed by typing (4/4 each). See [`templates/README.md`](templates/README.md).
 
 ## How it works
 
