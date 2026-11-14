@@ -33,9 +33,12 @@ fi
 "$A" -s "$DEV" logcat -c
 "$A" -s "$DEV" shell am start -S -n "$PKG/android.app.NativeActivity" --es oxytest 1 >/dev/null
 
-# Follow the log; take a screenshot at each "oxytest: shot NAME" cue; stop at DONE (max 90 s).
-declare -A taken=()
-for _ in $(seq 300); do
+# Follow the log and act on the demo's cues; stop at DONE (max ~120 s).
+#   oxytest: shot NAME           -> screenshot
+#   oxytest: input#N ARGS...     -> `adb shell input ARGS` once (real key presses and touches must
+#                                   come from outside the app). ARGS is restricted to safe tokens.
+declare -A taken=() done_input=()
+for _ in $(seq 400); do
   log=$("$A" -s "$DEV" logcat -d -v time oxydemo:I '*:S')
   for name in $(grep -oE 'oxytest: shot [A-Za-z0-9_-]+' <<<"$log" | awk '{print $3}'); do
     if [[ -z "${taken[$name]:-}" ]]; then
@@ -44,6 +47,16 @@ for _ in $(seq 300); do
       echo "screenshot $name"
     fi
   done
+  while IFS= read -r cue; do
+    n=$(sed -E 's/^input#([0-9]+) .*/\1/' <<<"$cue")
+    args=$(sed -E 's/^input#[0-9]+ //' <<<"$cue")
+    if [[ -z "${done_input[$n]:-}" && "$args" =~ ^(keyevent|tap|swipe)(\ [A-Z0-9_]+)+$ ]]; then
+      done_input[$n]=1
+      # shellcheck disable=SC2086  # deliberate word splitting of validated tokens
+      "$A" -s "$DEV" shell input $args
+      echo "input $args"
+    fi
+  done < <(grep -oE 'oxytest: input#[0-9]+ [A-Za-z0-9_ ]+' <<<"$log" | sed 's/^oxytest: //')
   grep -q 'oxytest: DONE' <<<"$log" && break
   sleep 0.3
 done

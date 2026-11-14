@@ -499,6 +499,19 @@ pub fn debug_take_messages() -> Vec<String> {
     std::mem::take(&mut *DEBUG.lock().unwrap())
 }
 
+/// The device's API level (`Build.VERSION.SDK_INT`), e.g. to skip tests on old versions.
+#[doc(hidden)]
+pub fn debug_api_level() -> i32 {
+    let mut level = 0;
+    with_env(|env| {
+        level = env
+            .get_static_field("android/os/Build$VERSION", "SDK_INT", "I")?
+            .i()?;
+        Ok(())
+    });
+    level
+}
+
 /// How many stale keyboard snapshots `poll` has dropped (Q1 filter).
 #[doc(hidden)]
 pub fn dropped_snapshots() -> u64 {

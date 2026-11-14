@@ -40,6 +40,11 @@ impl AutoTest {
     }
 }
 
+/// Ask the test runner (autotest.sh) to run `adb shell input ARGS`, once per `n`.
+fn input(n: u32, args: &str) {
+    log::info!("oxytest: input#{n} {args}");
+}
+
 /// What a step does after checking: an action (keyboard call) or a screenshot pause.
 enum Then {
     Act,
@@ -220,6 +225,33 @@ impl Demo {
                     oxydroid::debug_time_report(n);
                 }
                 oxydroid::set_state(&self.pass.clone(), 0..0); // drop the measurement snapshots
+                Then::Act
+            }
+            21 => {
+                // Back (Android 13+): close the keyboard first, or the keyboard eats the Back.
+                ctx.memory_mut(|m| m.surrender_focus(m.focused().unwrap_or(egui::Id::NULL)));
+                oxydroid::hide();
+                oxydroid::set_back_handled(true);
+                Then::Act
+            }
+            22 => {
+                self.back_seen = false;
+                input(1, "keyevent KEYCODE_BACK"); // a real key press, from the test runner
+                Then::Act
+            }
+            23 => {
+                let api = oxydroid::debug_api_level();
+                if api >= 33 {
+                    let seen = self.back_seen;
+                    self.check(
+                        "Back reaches the app (OnBackInvokedCallback)",
+                        seen,
+                        format!("API {api}"),
+                    );
+                } else {
+                    self.result(format!("oxytest: SKIP Back on API {api} (needs 13+)"));
+                }
+                // The demo's Back handler already gave Back back to the system: don't press it again.
                 Then::Act
             }
             _ => {

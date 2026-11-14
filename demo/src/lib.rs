@@ -61,6 +61,7 @@ struct Demo {
     race: Option<RaceTest>,
     edge_to_edge: bool,
     autotest: Option<autotest::AutoTest>,
+    back_seen: bool,
     user_id: Option<egui::Id>,
 }
 
@@ -78,6 +79,7 @@ impl Demo {
             race: None,
             edge_to_edge: false,
             autotest: None,
+            back_seen: false,
             user_id: None,
         }
     }
@@ -144,6 +146,7 @@ impl eframe::App for Demo {
         for ev in &events {
             match ev {
                 Event::Back => {
+                    self.back_seen = true;
                     self.signed_in = None;
                     oxydroid::set_back_handled(false);
                     self.result("back → signed out".into());
